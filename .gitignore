@@ -9,3 +9,6 @@ obj/
 # Local database files
 *.mdf
 *.ldf
+*.db
+*.db-shm
+*.db-wal

@@ -1,0 +1,26 @@
+@page
+@model SetupModel
+@{
+    ViewData["Title"] = "Create administrator";
+}
+<section class="auth-card">
+	<p class="eyebrow">FIRST RUN</p>
+	<h1>Create administrator</h1>
+	<p class="muted">Set up the local administrator account for this device.</p>
+	@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+	{
+		<div class="alert" role="alert">@Model.ErrorMessage</div>
+	}
+	<form method="post">
+		<label asp-for="Username">Username</label>
+		<input asp-for="Username" autocomplete="username" required />
+		<span asp-validation-for="Username" class="validation"></span>
+		<label asp-for="Password">Password</label>
+		<input asp-for="Password" type="password" autocomplete="new-password" required />
+		<span asp-validation-for="Password" class="validation"></span>
+		<label asp-for="ConfirmPassword">Confirm password</label>
+		<input asp-for="ConfirmPassword" type="password" autocomplete="new-password" required />
+		<span asp-validation-for="ConfirmPassword" class="validation"></span>
+		<button class="button full-width" type="submit">Create account</button>
+	</form>
+</section>

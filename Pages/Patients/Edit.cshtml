@@ -1,0 +1,10 @@
+@page "{id:int}"
+@model Patients.EditModel
+@{
+    ViewData["Title"] = "Edit patient";
+}
+<section class="form-card">
+	<p class="eyebrow">RECORD #@Model.PatientId</p>
+	<h1>Edit patient</h1>
+	<partial name="_PatientForm" model="Model.Input" />
+</section>

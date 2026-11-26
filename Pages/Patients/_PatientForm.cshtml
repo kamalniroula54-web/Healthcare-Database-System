@@ -1,0 +1,54 @@
+@model PatientForm
+<form method="post">
+	<div asp-validation-summary="ModelOnly" class="validation"></div>
+	<div class="form-grid">
+		<div>
+			<label asp-for="FirstName">First name</label>
+			<input asp-for="FirstName" maxlength="10" required />
+			<span asp-validation-for="FirstName" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="LastName">Last name</label>
+			<input asp-for="LastName" maxlength="10" required />
+			<span asp-validation-for="LastName" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="Gender">Gender</label>
+			<input asp-for="Gender" maxlength="10" required />
+			<span asp-validation-for="Gender" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="DateOfBirth">Date of birth</label>
+			<input asp-for="DateOfBirth" type="date" required />
+		</div>
+		<div class="span-two">
+			<label asp-for="Address">Address</label>
+			<textarea asp-for="Address" rows="3" required></textarea>
+			<span asp-validation-for="Address" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="Phone">Phone</label>
+			<input asp-for="Phone" maxlength="10" required />
+			<span asp-validation-for="Phone" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="AdmissionDate">Admission date</label>
+			<input asp-for="AdmissionDate" type="date" required />
+		</div>
+		<div>
+			<label asp-for="DischargeDate">Discharge date (optional)</label>
+			<input asp-for="DischargeDate" type="date" />
+		</div>
+		<div>
+			<label asp-for="Status">Status</label>
+			<select asp-for="Status">
+				<option value="1">Admitted</option>
+				<option value="2">Discharged</option>
+			</select>
+		</div>
+	</div>
+	<div class="form-actions">
+		<button class="button" type="submit">Save patient</button>
+		<a class="button secondary" asp-page="Index">Cancel</a>
+	</div>
+</form>

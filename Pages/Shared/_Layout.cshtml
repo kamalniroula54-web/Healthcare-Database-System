@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - MK Hospital</title>
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+	<header class="topbar">
+		<a class="brand" asp-page="/Index">MK Hospital</a>
+		@if (User.Identity?.IsAuthenticated == true)
+		{
+			<form method="post" asp-page="/Logout">
+				<button class="link-button" type="submit">Sign out</button>
+			</form>
+		}
+	</header>
+	<main class="container">
+		@RenderBody()
+	</main>
+</body>
+</html>

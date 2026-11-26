@@ -1,0 +1,61 @@
+@page
+@model Patients.IndexModel
+@{
+    ViewData["Title"] = "Patients";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">RECORDS</p>
+		<h1>Patients</h1>
+		<p class="muted">Patient information is stored by the hosted server.</p>
+	</div>
+	<a class="button" asp-page="Create">Add patient</a>
+</div>
+@if (TempData["Message"] is string message)
+{
+	<div class="notice">@message</div>
+}
+@if (Model.Patients.Count == 0)
+{
+	<div class="card empty-state">
+		<h2>No patient records yet</h2>
+		<p>Add a fictional test patient to get started.</p>
+	</div>
+}
+else
+{
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Name</th>
+					<th>Gender</th>
+					<th>Date of birth</th>
+					<th>Admission</th>
+					<th>Status</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+			@foreach (PatientRecord patient in Model.Patients)
+			{
+				<tr>
+					<td>@patient.PatientId</td>
+					<td>@patient.FirstName @patient.LastName</td>
+					<td>@patient.Gender</td>
+					<td>@patient.DateOfBirth.ToString("yyyy-MM-dd")</td>
+					<td>@patient.AdmissionDate.ToString("yyyy-MM-dd")</td>
+					<td><span class="status">@((patient.Status == 1) ? "Admitted" : "Discharged")</span></td>
+					<td class="actions">
+						<a asp-page="Edit" asp-route-id="@patient.PatientId">Edit</a>
+						<form method="post" asp-page-handler="Delete" asp-route-id="@patient.PatientId">
+							<button class="text-danger" type="submit">Delete</button>
+						</form>
+					</td>
+				</tr>
+			}
+			</tbody>
+		</table>
+	</div>
+}

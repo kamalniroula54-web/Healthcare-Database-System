@@ -1,0 +1,10 @@
+@page
+@model Patients.CreateModel
+@{
+    ViewData["Title"] = "Add patient";
+}
+<section class="form-card">
+	<p class="eyebrow">NEW RECORD</p>
+	<h1>Add patient</h1>
+	<partial name="_PatientForm" model="Model.Input" />
+</section>
