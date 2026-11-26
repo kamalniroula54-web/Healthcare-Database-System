@@ -34,6 +34,17 @@ The database is not stored in the repository. Each device has its own records.
 - Do not use real patient information or expose this demo directly to the
   internet.
 
+## Developer and disclaimer
+
+Developed by [kamalniroula54-web](https://github.com/kamalniroula54-web).
+
+Copyright © 2026 kamalniroula54-web. All rights reserved.
+
+This software is provided "as is" for educational and demonstration purposes
+only. It is not intended for real patient information, clinical use, or medical
+advice. Use fictional data only. The developer makes no warranties and is not
+responsible for loss or damage resulting from use of this software.
+
 ## Build
 
 ```powershell

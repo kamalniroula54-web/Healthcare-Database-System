@@ -43,6 +43,19 @@ a:hover {
 	margin: 2.5rem auto;
 }
 
+.site-footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: .5rem 1rem;
+	padding: 1.25rem 1rem;
+	border-top: 1px solid #e2ebf0;
+	background: #fff;
+	color: #64798a;
+	font-size: .85rem;
+	text-align: center;
+}
+
 .hero,
 .auth-card,
 .form-card,
