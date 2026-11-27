@@ -1,0 +1,25 @@
+@page
+@model MK_Hospital.Pages.PatientPortal.LoginModel
+@{
+    ViewData["Title"] = "Patient portal sign in";
+}
+<section class="auth-card">
+	<p class="eyebrow">PATIENT PORTAL</p>
+	<h1>Sign in to your records</h1>
+	<p class="muted">Use the patient portal username and password you created.</p>
+	@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+	{
+		<div class="alert" role="alert">@Model.ErrorMessage</div>
+	}
+	<form method="post">
+		<label asp-for="Username">Username</label>
+		<input asp-for="Username" autocomplete="username" required />
+		<span asp-validation-for="Username" class="validation"></span>
+		<label asp-for="Password">Password</label>
+		<input asp-for="Password" type="password" autocomplete="current-password" required />
+		<span asp-validation-for="Password" class="validation"></span>
+		<button class="button full-width" type="submit">Sign in</button>
+	</form>
+	<p class="muted"><a asp-page="/PatientPortal/Register">Create a patient portal account with a registration code</a></p>
+	<p class="muted">If you cannot sign in, contact the hospital that issued your code.</p>
+</section>

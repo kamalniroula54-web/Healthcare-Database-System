@@ -1,0 +1,64 @@
+@page "{id:int}"
+@model EditHospitalModel
+@{
+    ViewData["Title"] = "Edit hospital";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">HOSPITAL PROFILE</p>
+		<h1>Edit @Model.Hospital!.Name</h1>
+		<p class="muted">Manage the hospital's license details, address, contact information, and logo.</p>
+	</div>
+	<a class="button secondary" asp-page="/Admin/Hospitals">Back to hospitals</a>
+</div>
+<section class="form-card">
+	<form method="post" enctype="multipart/form-data">
+		<div asp-validation-summary="All" class="validation"></div>
+		<label asp-for="Input.Name">Hospital name</label>
+		<input asp-for="Input.Name" maxlength="100" required />
+		<span asp-validation-for="Input.Name" class="validation"></span>
+
+		<label asp-for="Input.LicenseNumber">License number</label>
+		<input asp-for="Input.LicenseNumber" maxlength="100" />
+		<span asp-validation-for="Input.LicenseNumber" class="validation"></span>
+
+		<label asp-for="Input.Address">Address</label>
+		<textarea asp-for="Input.Address" rows="4" maxlength="1000" placeholder="Street, city, state/province, postal code, country"></textarea>
+		<span asp-validation-for="Input.Address" class="validation"></span>
+
+		<div class="form-grid">
+			<div>
+				<label asp-for="Input.ContactPhone">Contact phone</label>
+				<input asp-for="Input.ContactPhone" type="tel" maxlength="40" />
+				<span asp-validation-for="Input.ContactPhone" class="validation"></span>
+			</div>
+			<div>
+				<label asp-for="Input.ContactEmail">Contact email</label>
+				<input asp-for="Input.ContactEmail" type="email" maxlength="254" />
+				<span asp-validation-for="Input.ContactEmail" class="validation"></span>
+			</div>
+		</div>
+
+		<div class="hospital-logo-editor">
+			<label asp-for="LogoFile">Hospital logo (PNG or JPEG, max 2 MB; max dimensions 4096 × 4096)</label>
+			<input asp-for="LogoFile" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" />
+			<span asp-validation-for="LogoFile" class="validation"></span>
+			@if (Model.Hospital!.HasLogo)
+			{
+				<div class="hospital-logo-preview">
+					<img src="@Url.Page("/HospitalLogo", new { id = Model.Hospital.HospitalId })" alt="Current @Model.Hospital.Name logo" />
+					<label class="checkbox-label">
+						<input asp-for="Input.RemoveLogo" />
+						Remove current logo
+					</label>
+					<span asp-validation-for="Input.RemoveLogo" class="validation"></span>
+				</div>
+			}
+		</div>
+
+		<div class="form-actions">
+			<button class="button" type="submit">Save hospital details</button>
+			<a class="button secondary" asp-page="/Admin/Hospitals">Cancel</a>
+		</div>
+	</form>
+</section>

@@ -2,6 +2,7 @@ namespace MK_Hospital.Data;
 
 public sealed record PatientRecord(
 	int PatientId,
+	int HospitalId,
 	string FirstName,
 	string LastName,
 	string Gender,
@@ -10,4 +11,7 @@ public sealed record PatientRecord(
 	string Phone,
 	DateTime AdmissionDate,
 	DateTime? DischargeDate,
-	int Status);
+	int Status,
+	string EmergencyContactName,
+	string EmergencyContactPhone,
+	string SharedPatientId);

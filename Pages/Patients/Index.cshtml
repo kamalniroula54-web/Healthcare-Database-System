@@ -7,13 +7,16 @@
 	<div>
 		<p class="eyebrow">RECORDS</p>
 		<h1>Patients</h1>
-		<p class="muted">Patient information is stored by the hosted server.</p>
+		<p class="muted">Open a patient’s clinical records to add check-ups and structured test results. Use fictional data only.</p>
 	</div>
 	<a class="button" asp-page="Create">Add patient</a>
 </div>
-@if (TempData["Message"] is string message)
+@if (Model.CanManageLocalPatients && Model.PendingDateChanges.Count > 0)
 {
-	<div class="notice">@message</div>
+	<div class="notice" role="status">
+		There @(Model.PendingDateChanges.Count == 1 ? "is" : "are") @Model.PendingDateChanges.Count unacknowledged employee date change(s).
+		<a asp-page="/Admin/Notifications">Review notifications</a>
+	</div>
 }
 @if (Model.Patients.Count == 0)
 {
@@ -30,29 +33,61 @@ else
 				<tr>
 					<th>ID</th>
 					<th>Name</th>
-					<th>Gender</th>
-					<th>Date of birth</th>
+					<th>Hospital</th>
 					<th>Admission</th>
-					<th>Status</th>
-					<th>Actions</th>
+					<th>Discharge</th>
+					<th>Clinical records</th>
+					@if (Model.CanManageLocalPatients)
+					{
+						<th>Actions</th>
+					}
+					else
+					{
+						<th>Update dates</th>
+					}
 				</tr>
 			</thead>
 			<tbody>
-			@foreach (PatientRecord patient in Model.Patients)
+			@foreach (PatientSummary patient in Model.Patients)
 			{
 				<tr>
 					<td>@patient.PatientId</td>
 					<td>@patient.FirstName @patient.LastName</td>
-					<td>@patient.Gender</td>
-					<td>@patient.DateOfBirth.ToString("yyyy-MM-dd")</td>
+					<td>@patient.HospitalName</td>
 					<td>@patient.AdmissionDate.ToString("yyyy-MM-dd")</td>
-					<td><span class="status">@((patient.Status == 1) ? "Admitted" : "Discharged")</span></td>
-					<td class="actions">
-						<a asp-page="Edit" asp-route-id="@patient.PatientId">Edit</a>
-						<form method="post" asp-page-handler="Delete" asp-route-id="@patient.PatientId">
-							<button class="text-danger" type="submit">Delete</button>
-						</form>
-					</td>
+					<td>@(patient.DischargeDate?.ToString("yyyy-MM-dd") ?? "Not discharged")</td>
+					<td><a asp-page="Records" asp-route-patientId="@patient.PatientId">Open records</a></td>
+					@if (Model.CanManageLocalPatients)
+					{
+						<td>
+							@if (patient.HospitalId == Model.CurrentHospitalId)
+							{
+								<div class="actions">
+									<a asp-page="Edit" asp-route-id="@patient.PatientId">Edit</a>
+									<form method="post" asp-page-handler="Delete" asp-route-id="@patient.PatientId">
+										<button class="text-danger" type="submit">Delete</button>
+									</form>
+								</div>
+							}
+							else
+							{
+								<span class="muted">Shared; patient details read-only</span>
+							}
+						</td>
+					}
+					else
+					{
+						<td>
+							@if (patient.HospitalId == Model.CurrentHospitalId)
+							{
+								<a asp-page="UpdateDates" asp-route-id="@patient.PatientId">Update dates</a>
+							}
+							else
+							{
+								<span class="muted">Shared; view all visits, edit your hospital's visits</span>
+							}
+						</td>
+					}
 				</tr>
 			}
 			</tbody>

@@ -1,0 +1,369 @@
+@page "{patientId:int}/Records"
+@model Patients.RecordsModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Patient medical history";
+    PatientTestResult[] unlinkedTests = Model.TestResults.Where(result => result.CheckupId is null).ToArray();
+    PatientRecord details = Model.PatientDetails!;
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">PATIENT #@Model.Patient!.PatientId</p>
+		<h1>@Model.Patient.FirstName @Model.Patient.LastName</h1>
+		<p class="muted">Patient medical history and visit-linked test results. Use fictional data only.</p>
+		@if (Model.IsReadOnly)
+		{
+			<p class="notice">Shared from @Model.Patient.HospitalName. You can view visits from all hospitals; only visits recorded by your hospital can be changed. New visits are stored under your hospital.</p>
+		}
+	</div>
+	<a class="button secondary" asp-page="Index">Back to patients</a>
+</div>
+
+<section class="card patient-demographics">
+	<h2>Patient information</h2>
+	<dl class="detail-grid">
+		<div><dt>Gender</dt><dd>@details.Gender</dd></div>
+		<div><dt>Date of birth</dt><dd>@details.DateOfBirth.ToString("yyyy-MM-dd")</dd></div>
+		<div><dt>Phone</dt><dd>@PhoneNumberSupport.FormatInternational(details.Phone)</dd></div>
+		<div><dt>Address</dt><dd class="preserve-lines">@details.Address</dd></div>
+		<div><dt>Admission date</dt><dd>@details.AdmissionDate.ToString("yyyy-MM-dd")</dd></div>
+		<div><dt>Discharge date</dt><dd>@(details.DischargeDate?.ToString("yyyy-MM-dd") ?? "Not discharged")</dd></div>
+		<div><dt>Emergency contact</dt><dd>@(string.IsNullOrWhiteSpace(details.EmergencyContactName) ? "Not provided" : details.EmergencyContactName)</dd></div>
+		<div><dt>Emergency contact phone</dt><dd>@(string.IsNullOrWhiteSpace(details.EmergencyContactPhone) ? "Not provided" : PhoneNumberSupport.FormatInternational(details.EmergencyContactPhone))</dd></div>
+	</dl>
+</section>
+
+@if (Model.CanCreatePortalCode)
+{
+	<section class="card">
+		<h2>Patient portal access</h2>
+		<p class="muted">Generate one one-time signup code for the verified patient. Records at other hospitals will appear automatically when they use the same shared patient ID.</p>
+		@if (!string.IsNullOrWhiteSpace(Model.PortalCodeMessage))
+		{
+			<div class="@(Model.PortalRegistrationCode is null ? "alert" : "notice")" role="status">
+				@Model.PortalCodeMessage
+				@if (Model.PortalRegistrationCode is not null)
+				{
+					<p><strong>Registration code:</strong> <code>@Model.PortalRegistrationCode</code></p>
+				}
+			</div>
+		}
+		<form method="post" asp-page-handler="CreatePortalRegistrationCode" asp-route-patientId="@Model.Patient!.PatientId">
+			<button class="button secondary" type="submit">Generate registration code</button>
+		</form>
+	</section>
+}
+
+@if (Model.CanAddVisits)
+{
+<section class="form-card clinical-form">
+	<h2>@(Model.CheckupInput.Id == 0 ? "Add a new visit" : "Edit visit")</h2>
+	@if (Model.IsReadOnly)
+	{
+		<p class="muted">This visit will be owned by your hospital. Visits recorded by other hospitals cannot be edited here.</p>
+	}
+	<form method="post" asp-page-handler="SaveCheckup" asp-route-patientId="@Model.Patient.PatientId">
+		<input type="hidden" asp-for="CheckupInput.Id" />
+		<div asp-validation-summary="All" class="validation"></div>
+		<div class="form-grid">
+			<div>
+				<label asp-for="CheckupInput.CheckupDate">Visit date</label>
+				<input asp-for="CheckupInput.CheckupDate" type="date" required />
+				<span asp-validation-for="CheckupInput.CheckupDate" class="validation"></span>
+			</div>
+			<div>
+				<label asp-for="CheckupInput.FollowUpDate">Follow-up date (optional)</label>
+				<input asp-for="CheckupInput.FollowUpDate" type="date" />
+				<span asp-validation-for="CheckupInput.FollowUpDate" class="validation"></span>
+			</div>
+		</div>
+
+		<fieldset class="history-section">
+			<legend>1. CHIEF COMPLAINT (CC)</legend>
+			<p class="muted">Primary reason for visit in the patient's own words.</p>
+			<label asp-for="CheckupInput.History.ChiefComplaint">Chief complaint</label>
+			<textarea asp-for="CheckupInput.History.ChiefComplaint" rows="3" maxlength="2000" required></textarea>
+			<span asp-validation-for="CheckupInput.History.ChiefComplaint" class="validation"></span>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>2. HISTORY OF PRESENT ILLNESS (HPI) - OLDCARTS</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.Onset">Onset</label><textarea asp-for="CheckupInput.History.Onset" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.Location">Location</label><textarea asp-for="CheckupInput.History.Location" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.Duration">Duration</label><textarea asp-for="CheckupInput.History.Duration" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.Character">Character</label><textarea asp-for="CheckupInput.History.Character" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.AggravatingFactors">Aggravating factors</label><textarea asp-for="CheckupInput.History.AggravatingFactors" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RelievingFactors">Relieving factors</label><textarea asp-for="CheckupInput.History.RelievingFactors" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.Timing">Timing</label><textarea asp-for="CheckupInput.History.Timing" rows="2" maxlength="4000"></textarea></div>
+				<div>
+					<label asp-for="CheckupInput.History.Severity">Severity (1-10)</label>
+					<input asp-for="CheckupInput.History.Severity" type="number" min="1" max="10" />
+					<span asp-validation-for="CheckupInput.History.Severity" class="validation"></span>
+				</div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>3. PAST MEDICAL HISTORY (PMH)</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.ChronicIllnesses">Chronic illnesses</label><textarea asp-for="CheckupInput.History.ChronicIllnesses" rows="3" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.PastHospitalizations">Past hospitalizations</label><textarea asp-for="CheckupInput.History.PastHospitalizations" rows="3" maxlength="4000"></textarea></div>
+				<div class="span-two"><label asp-for="CheckupInput.History.PastInjuriesTrauma">Past injuries/trauma</label><textarea asp-for="CheckupInput.History.PastInjuriesTrauma" rows="3" maxlength="4000"></textarea></div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>4. PAST SURGICAL HISTORY (PSH)</legend>
+			<p class="muted">Enter each procedure as: [Year] - [Procedure] - [Complications, if any]</p>
+			<label asp-for="CheckupInput.History.PastSurgicalHistory">Surgical history</label>
+			<textarea asp-for="CheckupInput.History.PastSurgicalHistory" rows="4" maxlength="4000"></textarea>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>5. CURRENT MEDICATIONS</legend>
+			<p class="muted">Enter each medication as: [Drug Name] | [Dose] | [Route] | [Frequency] | [Indication]</p>
+			<label asp-for="CheckupInput.History.CurrentMedications">Current medications</label>
+			<textarea asp-for="CheckupInput.History.CurrentMedications" rows="4" maxlength="4000"></textarea>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>6. ALLERGIES</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.DrugAllergies">Drug allergies (with reaction)</label><textarea asp-for="CheckupInput.History.DrugAllergies" rows="3" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.FoodEnvironmentalAllergies">Food/environmental allergies</label><textarea asp-for="CheckupInput.History.FoodEnvironmentalAllergies" rows="3" maxlength="4000"></textarea></div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>7. FAMILY HISTORY (FH)</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.FamilyHistoryFather">Father</label><textarea asp-for="CheckupInput.History.FamilyHistoryFather" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.FamilyHistoryMother">Mother</label><textarea asp-for="CheckupInput.History.FamilyHistoryMother" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.FamilyHistorySiblings">Siblings</label><textarea asp-for="CheckupInput.History.FamilyHistorySiblings" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.NotableHereditaryConditions">Notable hereditary conditions</label><textarea asp-for="CheckupInput.History.NotableHereditaryConditions" rows="2" maxlength="4000"></textarea></div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>8. SOCIAL HISTORY (SH)</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.OccupationPhysicalDemands">Occupation / physical demands</label><textarea asp-for="CheckupInput.History.OccupationPhysicalDemands" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.TobaccoUse">Tobacco use (current/former/never)</label><textarea asp-for="CheckupInput.History.TobaccoUse" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.AlcoholUse">Alcohol use</label><textarea asp-for="CheckupInput.History.AlcoholUse" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.SubstanceUse">Substance use</label><textarea asp-for="CheckupInput.History.SubstanceUse" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.ExerciseAndDiet">Exercise &amp; diet</label><textarea asp-for="CheckupInput.History.ExerciseAndDiet" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.LivingSituationSupportSystem">Living situation / support system</label><textarea asp-for="CheckupInput.History.LivingSituationSupportSystem" rows="2" maxlength="4000"></textarea></div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>9. IMMUNIZATIONS</legend>
+			<label asp-for="CheckupInput.History.Immunizations">Recent vaccines &amp; dates</label>
+			<textarea asp-for="CheckupInput.History.Immunizations" rows="3" maxlength="4000"></textarea>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>10. REVIEW OF SYSTEMS (ROS)</legend>
+			<div class="form-grid">
+				<div><label asp-for="CheckupInput.History.RosGeneralConstitutional">General/constitutional</label><textarea asp-for="CheckupInput.History.RosGeneralConstitutional" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RosCardiovascular">Cardiovascular</label><textarea asp-for="CheckupInput.History.RosCardiovascular" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RosRespiratory">Respiratory</label><textarea asp-for="CheckupInput.History.RosRespiratory" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RosGastrointestinal">Gastrointestinal</label><textarea asp-for="CheckupInput.History.RosGastrointestinal" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RosGenitourinary">Genitourinary</label><textarea asp-for="CheckupInput.History.RosGenitourinary" rows="2" maxlength="4000"></textarea></div>
+				<div><label asp-for="CheckupInput.History.RosMusculoskeletal">Musculoskeletal</label><textarea asp-for="CheckupInput.History.RosMusculoskeletal" rows="2" maxlength="4000"></textarea></div>
+				<div class="span-two"><label asp-for="CheckupInput.History.RosNeurological">Neurological</label><textarea asp-for="CheckupInput.History.RosNeurological" rows="2" maxlength="4000"></textarea></div>
+			</div>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>Additional notes (optional)</legend>
+			<label asp-for="CheckupInput.History.AdditionalNotes">Additional notes</label>
+			<textarea asp-for="CheckupInput.History.AdditionalNotes" rows="3" maxlength="4000"></textarea>
+		</fieldset>
+
+		<fieldset class="history-section">
+			<legend>Test results for this visit</legend>
+			<p class="muted">Add up to @PatientCheckupForm.MaxTestsPerVisit tests. Remove any blank rows before saving.</p>
+			<div id="test-results" data-max-tests="@PatientCheckupForm.MaxTestsPerVisit" data-initial-tests="@JsonSerializer.Serialize(Model.CheckupInput.Tests)"></div>
+			<button class="button secondary" type="button" id="add-test-result">+ Add test</button>
+			<p id="test-result-count" class="muted" aria-live="polite"></p>
+			<template id="test-result-template">
+				<fieldset class="test-result-row">
+					<legend>Test <span class="test-row-number">__number__</span></legend>
+					<input type="hidden" name="CheckupInput.Tests[__index__].Id" value="0" />
+					<div class="form-grid">
+						<div>
+							<label for="test-date-__index__">Test date</label>
+							<input id="test-date-__index__" name="CheckupInput.Tests[__index__].TestDate" type="date" required />
+						</div>
+						<div>
+							<label for="test-name-__index__">Test name</label>
+							<input id="test-name-__index__" name="CheckupInput.Tests[__index__].TestName" maxlength="200" required />
+						</div>
+						<div>
+							<label for="test-result-__index__">Result</label>
+							<input id="test-result-__index__" name="CheckupInput.Tests[__index__].Result" maxlength="1000" required />
+						</div>
+						<div>
+							<label for="test-unit-__index__">Unit (optional)</label>
+							<input id="test-unit-__index__" name="CheckupInput.Tests[__index__].Unit" maxlength="64" />
+						</div>
+						<div class="span-two">
+							<label for="test-range-__index__">Reference range (optional)</label>
+							<input id="test-range-__index__" name="CheckupInput.Tests[__index__].ReferenceRange" maxlength="200" />
+						</div>
+						<div class="span-two">
+							<label for="test-notes-__index__">Notes (optional)</label>
+							<textarea id="test-notes-__index__" name="CheckupInput.Tests[__index__].Notes" rows="2" maxlength="4000"></textarea>
+						</div>
+					</div>
+					<button class="text-danger" type="button" data-remove-test>Remove test</button>
+				</fieldset>
+			</template>
+		</fieldset>
+
+		<div class="form-actions">
+			<button class="button" type="submit">@(Model.CheckupInput.Id == 0 ? "Save new visit" : "Update visit")</button>
+			@if (Model.CheckupInput.Id != 0)
+			{
+				<a class="button secondary" asp-page="Records" asp-route-patientId="@Model.Patient.PatientId">Cancel edit</a>
+			}
+		</div>
+	</form>
+</section>
+}
+
+@if (Model.TestResultInput.Id != 0)
+{
+	<section class="form-card">
+		<h2>Edit legacy unlinked test result</h2>
+		<form method="post" asp-page-handler="SaveTestResult" asp-route-patientId="@Model.Patient.PatientId">
+			<input type="hidden" asp-for="TestResultInput.Id" />
+			<div asp-validation-summary="All" class="validation"></div>
+			<div class="form-grid">
+				<div><label asp-for="TestResultInput.TestDate">Test date</label><input asp-for="TestResultInput.TestDate" type="date" required /></div>
+				<div><label asp-for="TestResultInput.TestName">Test name</label><input asp-for="TestResultInput.TestName" maxlength="200" required /></div>
+				<div><label asp-for="TestResultInput.Result">Result</label><input asp-for="TestResultInput.Result" maxlength="1000" required /></div>
+				<div><label asp-for="TestResultInput.Unit">Unit (optional)</label><input asp-for="TestResultInput.Unit" maxlength="64" /></div>
+				<div class="span-two"><label asp-for="TestResultInput.ReferenceRange">Reference range (optional)</label><input asp-for="TestResultInput.ReferenceRange" maxlength="200" /></div>
+				<div class="span-two"><label asp-for="TestResultInput.Notes">Notes (optional)</label><textarea asp-for="TestResultInput.Notes" rows="3" maxlength="4000"></textarea></div>
+			</div>
+			<div class="form-actions">
+				<button class="button" type="submit">Update test result</button>
+				<a class="button secondary" asp-page="Records" asp-route-patientId="@Model.Patient.PatientId">Cancel</a>
+			</div>
+		</form>
+	</section>
+}
+
+<section>
+	<h2>Visit history</h2>
+	@if (Model.Checkups.Count == 0)
+	{
+		<div class="card empty-state"><p>No visit history recorded.</p></div>
+	}
+	else
+	{
+		@foreach (PatientCheckup checkup in Model.Checkups)
+		{
+			<article class="card">
+				<div class="page-heading">
+					<div>
+						<h3>Visit on @checkup.CheckupDate.ToString("yyyy-MM-dd")</h3>
+						<p class="muted">Recorded at @checkup.HospitalName by @checkup.CreatedBy on @checkup.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						@if (checkup.UpdatedAtUtc > checkup.CreatedAtUtc)
+						{
+							<p class="muted">Last updated by @checkup.UpdatedBy on @checkup.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						}
+					</div>
+					@if (checkup.FollowUpDate.HasValue)
+					{
+						<span class="status">Follow-up: @checkup.FollowUpDate.Value.ToString("yyyy-MM-dd")</span>
+					}
+				</div>
+				<partial name="_PatientMedicalHistory" model="checkup.History" />
+				@{
+					PatientTestResult[] visitTests = Model.TestResults
+						.Where(result => result.CheckupId == checkup.CheckupId)
+						.ToArray();
+				}
+				<h4>Tests recorded for this visit</h4>
+				@if (visitTests.Length == 0)
+				{
+					<p class="muted">No tests recorded for this visit.</p>
+				}
+				else
+				{
+					<ul class="visit-test-list">
+					@foreach (PatientTestResult result in visitTests)
+					{
+						<li>
+							<strong>@result.TestName</strong> (@result.TestDate.ToString("yyyy-MM-dd")):
+							@result.Result @result.Unit
+							@if (!string.IsNullOrWhiteSpace(result.ReferenceRange))
+							{
+								<span> — Reference range: @result.ReferenceRange</span>
+							}
+							@if (!string.IsNullOrWhiteSpace(result.Notes))
+							{
+								<p class="record-notes">@result.Notes</p>
+							}
+						</li>
+					}
+					</ul>
+				}
+				@if (checkup.HospitalId == Model.CurrentHospitalId)
+				{
+					<div class="actions">
+						<a asp-page="Records" asp-route-patientId="@Model.Patient.PatientId" asp-route-editCheckupId="@checkup.CheckupId">Edit visit</a>
+						<form method="post" asp-page-handler="DeleteCheckup" asp-route-patientId="@Model.Patient.PatientId" asp-route-id="@checkup.CheckupId">
+							<button class="text-danger" type="submit">Delete visit</button>
+						</form>
+					</div>
+				}
+			</article>
+		}
+	}
+</section>
+
+<section>
+	<h2>Legacy test results not linked to a visit</h2>
+	@if (unlinkedTests.Length == 0)
+	{
+		<div class="card empty-state"><p>No unlinked test results.</p></div>
+	}
+	else
+	{
+		@foreach (PatientTestResult result in unlinkedTests)
+		{
+			<article class="card">
+				<h3>@result.TestName <span class="muted">(@result.TestDate.ToString("yyyy-MM-dd"))</span></h3>
+				<p><strong>Result:</strong> @result.Result @result.Unit</p>
+				@if (!string.IsNullOrWhiteSpace(result.ReferenceRange))
+				{
+					<p><strong>Reference range:</strong> @result.ReferenceRange</p>
+				}
+				@if (!string.IsNullOrWhiteSpace(result.Notes))
+				{
+					<p class="record-notes">@result.Notes</p>
+				}
+				<p class="muted">Recorded by @result.CreatedBy on @result.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+				@if (result.HospitalId == Model.CurrentHospitalId)
+				{
+					<div class="actions">
+						<a asp-page="Records" asp-route-patientId="@Model.Patient.PatientId" asp-route-editTestResultId="@result.TestResultId">Edit</a>
+						<form method="post" asp-page-handler="DeleteTestResult" asp-route-patientId="@Model.Patient.PatientId" asp-route-id="@result.TestResultId">
+							<button class="text-danger" type="submit">Delete</button>
+						</form>
+					</div>
+				}
+			</article>
+		}
+	}
+</section>
+
+@if (Model.CanAddVisits)
+{
+	<script src="~/js/clinical-records.js" asp-append-version="true"></script>
+}

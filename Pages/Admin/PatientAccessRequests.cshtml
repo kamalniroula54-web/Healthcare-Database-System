@@ -1,0 +1,113 @@
+@page
+@model PatientAccessRequestsModel
+@{
+    ViewData["Title"] = "Patient access requests";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Patient access requests</h1>
+		<p class="muted">Global administrators can review all requests. A delegated hospital administrator can review requests only for patients owned by their assigned hospital. Approval grants the requesting hospital access to the patient's full visit history; each hospital can edit only its own visits. Grants can be revoked.</p>
+	</div>
+</div>
+<section class="card">
+	<h2>Requests</h2>
+	@if (Model.Requests.Count == 0)
+	{
+		<p class="muted">No patient access requests have been submitted.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Employee</th><th>Employee hospital</th><th>Requested hospital</th><th>Patient reference</th><th>Reason</th><th>Submitted</th><th>Status / action</th></tr></thead>
+				<tbody>
+				@foreach (PatientAccessRequestSummary request in Model.Requests)
+				{
+					<tr>
+						<td>@request.EmployeeName (@request.EmployeeUsername)</td>
+						<td>@request.EmployeeHospitalName</td>
+						<td>@request.TargetHospitalName</td>
+						<td>@request.PatientReference</td>
+						<td>@request.Reason</td>
+						<td>@request.RequestedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+						<td>
+							@if (request.Status == "Pending")
+							{
+								<form method="post" asp-page-handler="Approve" asp-route-requestId="@request.Id">
+									<label for="patient-@request.Id">Grant access to @request.EmployeeHospitalName</label>
+									<select id="patient-@request.Id" name="patientId" required>
+										<option value="">Select patient at @request.TargetHospitalName</option>
+										@if (Model.Candidates.TryGetValue(request.TargetHospitalId, out IReadOnlyList<PatientCandidate>? patients))
+										{
+											@foreach (PatientCandidate patient in patients)
+											{
+												<option value="@patient.PatientId">@patient.Name (record #@patient.PatientId)</option>
+											}
+										}
+									</select>
+									<button type="submit">Grant hospital access</button>
+								</form>
+								<form method="post" asp-page-handler="Reject" asp-route-requestId="@request.Id">
+									<button class="text-danger" type="submit">Reject</button>
+								</form>
+							}
+							else
+							{
+								<span>@request.Status</span>
+								@if (request.GrantedPatientName is not null)
+								{
+									<span> — @request.GrantedPatientName</span>
+								}
+								@if (request.ResolvedBy is not null)
+								{
+									<span class="muted"> by @request.ResolvedBy</span>
+								}
+							}
+						</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>
+<section class="card">
+	<h2>Patient access grants</h2>
+	@if (Model.Grants.Count == 0)
+	{
+		<p class="muted">No grants have been created.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Requested by</th><th>Receiving hospital</th><th>Source hospital</th><th>Patient</th><th>Granted by / date</th><th>Status</th></tr></thead>
+				<tbody>
+				@foreach (PatientAccessGrantSummary grant in Model.Grants)
+				{
+					<tr>
+						<td>@grant.EmployeeName (@grant.EmployeeUsername)</td>
+						<td>@grant.GrantedHospitalName</td>
+						<td>@grant.HospitalName</td>
+						<td>@grant.PatientName (record #@grant.PatientId)</td>
+						<td>@grant.GrantedBy / @grant.GrantedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+						<td>
+							@if (grant.RevokedAtUtc is null)
+							{
+								<form method="post" asp-page-handler="Revoke" asp-route-grantId="@grant.Id">
+									<button class="text-danger" type="submit">Revoke hospital access</button>
+								</form>
+							}
+							else
+							{
+								<span>Revoked by @grant.RevokedBy on @grant.RevokedAtUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+							}
+						</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>

@@ -1,0 +1,96 @@
+@page
+@model AdministratorsModel
+@{
+    ViewData["Title"] = "Administrator accounts";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Administrator accounts</h1>
+		<p class="muted">A second administrator can verify and help recover another administrator's account.</p>
+	</div>
+</div>
+@if (!string.IsNullOrEmpty(Model.TemporaryPassword))
+{
+	<section class="notice" role="status">
+		<h2>@(Model.PasswordAction == "reset" ? "Administrator password reset" : "Administrator account created")</h2>
+		@if (!string.IsNullOrWhiteSpace(Model.PasswordDeliveryError))
+		{
+			<p>Email delivery was unavailable (@Model.PasswordDeliveryError). Verify the recipient's identity and share this code through a trusted channel.</p>
+		}
+		else
+		{
+			<p>Share this one-time password securely with <strong>@Model.PasswordUsername</strong>. They must set a personal password after signing in.</p>
+		}
+		<label for="temporary-password">One-time password (OTP)</label>
+		<div class="otp-copy-row">
+			<input id="temporary-password" type="text" value="@Model.TemporaryPassword" readonly onfocus="this.select()" aria-describedby="otp-copy-status" />
+			<button id="copy-otp" type="button">Copy OTP</button>
+		</div>
+		<p id="otp-copy-status" aria-live="polite">Select the field to copy manually if the copy button is unavailable.</p>
+	</section>
+	<script>
+		document.getElementById("copy-otp").addEventListener("click", async function () {
+			const otpInput = document.getElementById("temporary-password");
+			const copyStatus = document.getElementById("otp-copy-status");
+			otpInput.select();
+			try {
+				await navigator.clipboard.writeText(otpInput.value);
+				copyStatus.textContent = "OTP copied to clipboard.";
+			} catch {
+				copyStatus.textContent = "Automatic copy is unavailable. The OTP is selected; copy it manually.";
+			}
+		});
+	</script>
+}
+<section class="card">
+	<h2>Create administrator account</h2>
+	<form method="post">
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		<label asp-for="Input.Username">Username</label>
+		<input asp-for="Input.Username" autocomplete="off" required />
+		<span asp-validation-for="Input.Username" class="validation"></span>
+		<button class="button" type="submit">Create administrator</button>
+	</form>
+</section>
+<section class="card">
+	<h2>Administrator accounts</h2>
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Name</th>
+					<th>Email</th>
+					<th>Phone</th>
+					<th>Status</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+			@foreach (EmployeeAccountSummary administrator in Model.Administrators)
+			{
+				<tr>
+					<td>@administrator.Username</td>
+					<td>@administrator.Profile.FirstName @administrator.Profile.LastName</td>
+					<td>@administrator.Profile.Email</td>
+					<td>@PhoneNumberSupport.FormatInternational(administrator.Profile.Phone)</td>
+					<td>@(administrator.MustChangePassword ? "Password setup required" : administrator.ProfileComplete ? "Complete" : "Profile setup required")</td>
+					<td class="actions">
+						@if (!string.Equals(administrator.Username, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+						{
+							<form method="post" asp-page-handler="ResetPassword" asp-route-username="@administrator.Username">
+								<button class="button secondary" type="submit">Reset password</button>
+							</form>
+						}
+						else
+						{
+							<span>Current account</span>
+						}
+					</td>
+				</tr>
+			}
+			</tbody>
+		</table>
+	</div>
+</section>

@@ -1,0 +1,115 @@
+@page
+@model HospitalAdminsModel
+@{
+    ViewData["Title"] = "Hospital administrators";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">GLOBAL ADMINISTRATION</p>
+		<h1>Hospital administrators</h1>
+		<p class="muted">Assign each hospital administrator to one hospital. Patient-access approval is a separate, per-account permission that can be changed or revoked here.</p>
+	</div>
+</div>
+@if (!string.IsNullOrEmpty(Model.TemporaryPassword))
+{
+	<section class="notice" role="status">
+		<h2>@(Model.PasswordAction == "reset" ? "Hospital administrator password reset" : "Hospital administrator account created")</h2>
+		@if (!string.IsNullOrEmpty(Model.PasswordDeliveryError))
+		{
+			<p>Email delivery failed (@Model.PasswordDeliveryError). Share this one-time password securely with <strong>@Model.PasswordUsername</strong>. It is displayed only once.</p>
+		}
+		else if (Model.PasswordAction == "created")
+		{
+			<p>Share this one-time password securely with <strong>@Model.PasswordUsername</strong>. They must complete their profile and choose a personal password before using the account.</p>
+		}
+		else
+		{
+			<p>Share this one-time password securely with <strong>@Model.PasswordUsername</strong> using another trusted recovery channel.</p>
+		}
+		<label for="hospital-admin-otp">One-time password</label>
+		<input id="hospital-admin-otp" type="text" value="@Model.TemporaryPassword" readonly onfocus="this.select()" />
+	</section>
+}
+<section class="card">
+	<h2>Create hospital administrator</h2>
+	<form method="post" asp-page-handler="Create">
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		<label asp-for="Input.Username">Username</label>
+		<input asp-for="Input.Username" autocomplete="off" required />
+		<span asp-validation-for="Input.Username" class="validation"></span>
+		<label asp-for="Input.HospitalId">Assigned hospital</label>
+		<select asp-for="Input.HospitalId" required>
+			<option value="">Select a hospital</option>
+			@foreach (HospitalSummary hospital in Model.Hospitals)
+			{
+				<option value="@hospital.HospitalId">@hospital.Name</option>
+			}
+		</select>
+		<span asp-validation-for="Input.HospitalId" class="validation"></span>
+		<label class="checkbox-label">
+			<input asp-for="Input.CanApprovePatientAccess" />
+			Can approve or reject cross-hospital patient access requests for this hospital
+		</label>
+		<button class="button" type="submit">Create hospital admin</button>
+	</form>
+</section>
+<section class="card">
+	<h2>Hospital administrators</h2>
+	@if (Model.HospitalAdministrators.Count == 0)
+	{
+		<p class="muted">No hospital administrators have been assigned.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th>Username</th>
+						<th>Name</th>
+						<th>Assigned hospital</th>
+						<th>Patient-access approvals</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+				@foreach (EmployeeAccountSummary account in Model.HospitalAdministrators)
+				{
+					<tr>
+						<td>@account.Username</td>
+						<td>@account.Profile.FirstName @account.Profile.LastName</td>
+						<td colspan="2">
+							<form method="post" asp-page-handler="Update" asp-route-username="@account.Username">
+								<div class="form-grid">
+									<div>
+										<label for="hospital-@account.Username">Assigned hospital</label>
+										<select id="hospital-@account.Username" name="hospitalId" required>
+											@foreach (HospitalSummary hospital in Model.Hospitals)
+											{
+												<option value="@hospital.HospitalId" selected="@(hospital.HospitalId == account.HospitalId)">@hospital.Name</option>
+											}
+										</select>
+									</div>
+									<label class="checkbox-label">
+										<input type="checkbox" name="canApprovePatientAccess" value="true" checked="@account.CanApprovePatientAccess" />
+										Can approve/reject patient-access requests
+									</label>
+								</div>
+								<button class="button secondary" type="submit">Save assignment</button>
+							</form>
+						</td>
+						<td class="actions">
+							<form method="post" asp-page-handler="ResetPassword" asp-route-username="@account.Username">
+								<button class="button secondary" type="submit">Reset password</button>
+							</form>
+							<form method="post" asp-page-handler="Remove" asp-route-username="@account.Username">
+								<button class="text-danger" type="submit">Remove admin role</button>
+							</form>
+						</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>

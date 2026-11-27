@@ -1,0 +1,79 @@
+@model PatientMedicalHistory
+@functions {
+	string Value(string? value) => string.IsNullOrWhiteSpace(value) ? "Not recorded" : value;
+}
+<section class="medical-history">
+	<h4>1. CHIEF COMPLAINT (CC)</h4>
+	<p class="record-notes">@Value(Model.ChiefComplaint)</p>
+
+	<h4>2. HISTORY OF PRESENT ILLNESS (HPI) - OLDCARTS</h4>
+	<dl>
+		<dt>Onset</dt><dd class="record-notes">@Value(Model.Onset)</dd>
+		<dt>Location</dt><dd class="record-notes">@Value(Model.Location)</dd>
+		<dt>Duration</dt><dd class="record-notes">@Value(Model.Duration)</dd>
+		<dt>Character</dt><dd class="record-notes">@Value(Model.Character)</dd>
+		<dt>Aggravating factors</dt><dd class="record-notes">@Value(Model.AggravatingFactors)</dd>
+		<dt>Relieving factors</dt><dd class="record-notes">@Value(Model.RelievingFactors)</dd>
+		<dt>Timing</dt><dd class="record-notes">@Value(Model.Timing)</dd>
+		<dt>Severity (1-10)</dt>
+		<dd>@(Model.Severity.HasValue ? Model.Severity.Value.ToString() : "Not recorded")</dd>
+	</dl>
+
+	<h4>3. PAST MEDICAL HISTORY (PMH)</h4>
+	<dl>
+		<dt>Chronic illnesses</dt><dd class="record-notes">@Value(Model.ChronicIllnesses)</dd>
+		<dt>Past hospitalizations</dt><dd class="record-notes">@Value(Model.PastHospitalizations)</dd>
+		<dt>Past injuries/trauma</dt><dd class="record-notes">@Value(Model.PastInjuriesTrauma)</dd>
+	</dl>
+
+	<h4>4. PAST SURGICAL HISTORY (PSH)</h4>
+	<p class="record-notes">@Value(Model.PastSurgicalHistory)</p>
+
+	<h4>5. CURRENT MEDICATIONS</h4>
+	<p class="muted">Drug name | dose | route | frequency | indication</p>
+	<p class="record-notes">@Value(Model.CurrentMedications)</p>
+
+	<h4>6. ALLERGIES</h4>
+	<dl>
+		<dt>Drug allergies (with reaction)</dt><dd class="record-notes">@Value(Model.DrugAllergies)</dd>
+		<dt>Food/environmental allergies</dt><dd class="record-notes">@Value(Model.FoodEnvironmentalAllergies)</dd>
+	</dl>
+
+	<h4>7. FAMILY HISTORY (FH)</h4>
+	<dl>
+		<dt>Father</dt><dd class="record-notes">@Value(Model.FamilyHistoryFather)</dd>
+		<dt>Mother</dt><dd class="record-notes">@Value(Model.FamilyHistoryMother)</dd>
+		<dt>Siblings</dt><dd class="record-notes">@Value(Model.FamilyHistorySiblings)</dd>
+		<dt>Notable hereditary conditions</dt><dd class="record-notes">@Value(Model.NotableHereditaryConditions)</dd>
+	</dl>
+
+	<h4>8. SOCIAL HISTORY (SH)</h4>
+	<dl>
+		<dt>Occupation / physical demands</dt><dd class="record-notes">@Value(Model.OccupationPhysicalDemands)</dd>
+		<dt>Tobacco use (current/former/never)</dt><dd class="record-notes">@Value(Model.TobaccoUse)</dd>
+		<dt>Alcohol use</dt><dd class="record-notes">@Value(Model.AlcoholUse)</dd>
+		<dt>Substance use</dt><dd class="record-notes">@Value(Model.SubstanceUse)</dd>
+		<dt>Exercise &amp; diet</dt><dd class="record-notes">@Value(Model.ExerciseAndDiet)</dd>
+		<dt>Living situation / support system</dt><dd class="record-notes">@Value(Model.LivingSituationSupportSystem)</dd>
+	</dl>
+
+	<h4>9. IMMUNIZATIONS</h4>
+	<p class="record-notes">@Value(Model.Immunizations)</p>
+
+	<h4>10. REVIEW OF SYSTEMS (ROS)</h4>
+	<dl>
+		<dt>General/constitutional</dt><dd class="record-notes">@Value(Model.RosGeneralConstitutional)</dd>
+		<dt>Cardiovascular</dt><dd class="record-notes">@Value(Model.RosCardiovascular)</dd>
+		<dt>Respiratory</dt><dd class="record-notes">@Value(Model.RosRespiratory)</dd>
+		<dt>Gastrointestinal</dt><dd class="record-notes">@Value(Model.RosGastrointestinal)</dd>
+		<dt>Genitourinary</dt><dd class="record-notes">@Value(Model.RosGenitourinary)</dd>
+		<dt>Musculoskeletal</dt><dd class="record-notes">@Value(Model.RosMusculoskeletal)</dd>
+		<dt>Neurological</dt><dd class="record-notes">@Value(Model.RosNeurological)</dd>
+	</dl>
+
+	@if (!string.IsNullOrWhiteSpace(Model.AdditionalNotes))
+	{
+		<h4>Additional notes</h4>
+		<p class="record-notes">@Model.AdditionalNotes</p>
+	}
+</section>

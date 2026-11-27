@@ -1,0 +1,70 @@
+@page
+@model OutlookEmailModel
+@{
+    ViewData["Title"] = "Outlook email";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Outlook email</h1>
+		<p class="muted">Connect the Outlook mailbox used to deliver password reset codes.</p>
+	</div>
+</div>
+@if (!Model.Status.IsConfigured)
+{
+	<section class="card">
+		<h2>Outlook is not configured</h2>
+		<p>Register a public-client app in Microsoft Entra with personal Microsoft accounts enabled, public-client flows allowed, and delegated Microsoft Graph <code>Mail.Send</code> permission.</p>
+		<p>Set the app's client ID in the <code>Outlook__ClientId</code> environment variable, then restart Everest Health. The client ID is not a password; do not put client secrets or mailbox passwords in source control.</p>
+	</section>
+}
+else if (Model.Status.UserCode is not null)
+{
+	<section class="notice" role="status">
+		<h2>Finish connecting Outlook</h2>
+		<p>@Model.Status.Message</p>
+		<p>Verification code: <strong>@Model.Status.UserCode</strong></p>
+		@if (Model.Status.VerificationUrl is not null)
+		{
+			<p><a href="@Model.Status.VerificationUrl" target="_blank" rel="noopener noreferrer">Open Microsoft sign-in</a></p>
+		}
+		<p>After approving access, this page refreshes automatically.</p>
+	</section>
+	<script>
+		window.setTimeout(() => window.location.reload(), 5000);
+	</script>
+}
+else if (Model.Status.IsConnected)
+{
+	<section class="notice" role="status">
+		<h2>Outlook connected</h2>
+		<p>Reset emails are sent from <strong>@Model.Status.ConnectedEmail</strong>.</p>
+		<form method="post" asp-page-handler="Disconnect">
+			<button class="button secondary" type="submit">Disconnect Outlook</button>
+		</form>
+	</section>
+}
+else if (Model.Status.ErrorCode == "SenderMailboxMismatch")
+{
+	<section class="alert" role="alert">
+		<h2>Different Outlook mailbox is connected</h2>
+		<p>The reset sender must be <strong>@OutlookGraphMailSender.ExpectedSenderEmail</strong>, but the connected mailbox is <strong>@Model.Status.ConnectedEmail</strong>. Disconnect it before connecting the reset mailbox.</p>
+		<form method="post" asp-page-handler="Disconnect">
+			<button class="button secondary" type="submit">Disconnect other mailbox</button>
+		</form>
+	</section>
+}
+else
+{
+	<section class="card">
+		<h2>Connect a Microsoft account</h2>
+		<p>Sign in as <strong>@OutlookGraphMailSender.ExpectedSenderEmail</strong>. Microsoft will ask you to approve the app's delegated email-sending permission.</p>
+		@if (Model.Status.ErrorCode is not null)
+		{
+			<p class="alert">Outlook needs to be connected again (@Model.Status.ErrorCode).</p>
+		}
+		<form method="post" asp-page-handler="Connect">
+			<button class="button" type="submit">Connect Outlook</button>
+		</form>
+	</section>
+}

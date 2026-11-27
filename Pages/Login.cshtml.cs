@@ -33,18 +33,37 @@ public sealed class LoginModel(IUserAccountService accounts) : PageModel
 		if (!await accounts.IsConfiguredAsync(cancellationToken))
 			return RedirectToPage("/Setup");
 
-		if (!await accounts.VerifyCredentialsAsync(Username, Password, cancellationToken))
+		UserAccount? account = await accounts.AuthenticateAsync(Username, Password, cancellationToken);
+		if (account is null)
 		{
 			ErrorMessage = "The username or password is incorrect.";
 			return Page();
 		}
 
+		List<Claim> claims =
+		[
+			new Claim(ClaimTypes.Name, account.Username),
+			new Claim(ClaimTypes.Role, account.Role),
+			new Claim(HospitalClaims.HospitalId, account.HospitalId.ToString())
+		];
+		if (account.IsHospitalAdmin)
+			claims.Add(new Claim(ClaimTypes.Role, UserRoles.HospitalAdmin));
+		if (account.CanApprovePatientAccess)
+			claims.Add(new Claim(UserAccountClaims.CanApprovePatientAccess, "true"));
+		if (account.MustChangePassword)
+			claims.Add(new Claim(UserAccountClaims.MustChangePassword, "true"));
+		if (!account.ProfileComplete)
+			claims.Add(new Claim(UserAccountClaims.MustCompleteProfile, "true"));
+
 		ClaimsPrincipal principal = new(
 			new ClaimsIdentity(
-				[new Claim(ClaimTypes.Name, Username.Trim())],
+				claims,
 				CookieAuthenticationDefaults.AuthenticationScheme));
 
 		await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+		if (account.MustChangePassword || !account.ProfileComplete)
+			return RedirectToPage("/ChangePassword");
+
 		return !string.IsNullOrWhiteSpace(ReturnUrl) && Url.IsLocalUrl(ReturnUrl)
 			? LocalRedirect(ReturnUrl)
 			: RedirectToPage("/Index");

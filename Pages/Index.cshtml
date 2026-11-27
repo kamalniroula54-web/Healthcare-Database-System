@@ -5,7 +5,37 @@
 }
 <div class="hero">
 	<p class="eyebrow">PATIENT ADMINISTRATION</p>
-	<h1>Welcome to MK Hospital</h1>
-	<p>Manage patient records from a secure browser-based dashboard.</p>
+	<h1>Welcome, @Model.WelcomeName</h1>
+	@if (User.IsInRole(UserRoles.Admin))
+	{
+		<p>Manage all hospitals, patient records, employee accounts, and system administration.</p>
+		@if (Model.PendingPasswordResetCount > 0)
+		{
+			<div class="notice" role="status">
+				There @(Model.PendingPasswordResetCount == 1 ? "is" : "are") @Model.PendingPasswordResetCount pending employee password reset
+				@(Model.PendingPasswordResetCount == 1 ? "request" : "requests").
+				<a asp-page="/Admin/PasswordResetRequests">Review reset requests</a>
+			</div>
+		}
+		<a class="button" asp-page="/Admin/Employees">Manage employees</a>
+		<a class="button secondary" asp-page="/Admin/Administrators">Manage administrators</a>
+		<a class="button secondary" asp-page="/Admin/HospitalAdmins">Manage hospital administrators</a>
+		<a class="button secondary" asp-page="/Admin/PasswordResetRequests">Password reset requests</a>
+		<a class="button secondary" asp-page="/Admin/Notifications">Date notifications</a>
+	}
+	else if (User.IsInRole(UserRoles.HospitalAdmin))
+	{
+		<p>Manage employees and patient records for your assigned hospital.</p>
+		<a class="button" asp-page="/Admin/Employees">Manage employees</a>
+		<a class="button secondary" asp-page="/Admin/Notifications">Date notifications</a>
+		@if (User.HasClaim(UserAccountClaims.CanApprovePatientAccess, "true"))
+		{
+			<a class="button secondary" asp-page="/Admin/PatientAccessRequests">Review patient access</a>
+		}
+	}
+	else
+	{
+		<p>Create patient records and view limited patient summaries.</p>
+	}
 	<a class="button" asp-page="/Patients/Index">Open patient records</a>
 </div>

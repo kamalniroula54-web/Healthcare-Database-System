@@ -1,0 +1,17 @@
+@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "My profile";
+}
+<section class="form-card">
+	<p class="eyebrow">MY ACCOUNT</p>
+	<h1>My profile</h1>
+	<p class="muted">Update your contact and emergency-contact information.</p>
+	<form method="post" novalidate>
+		<div asp-validation-summary="All" class="validation"></div>
+		<partial name="_EmployeeProfileFields" for="Input" />
+		<div class="form-actions">
+			<button class="button" type="submit">Save profile</button>
+		</div>
+	</form>
+</section>

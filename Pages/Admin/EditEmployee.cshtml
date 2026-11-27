@@ -1,0 +1,44 @@
+@page
+@model EditEmployeeModel
+@{
+    ViewData["Title"] = "Edit employee";
+}
+<section class="form-card">
+	<p class="eyebrow">EMPLOYEE ACCOUNT</p>
+	<h1>Edit @Model.Username</h1>
+	<p class="muted">
+		@if (Model.CanAssignHospital)
+		{
+			@:Global administrators can update employee details and assign one home hospital. Changing the assignment invalidates the employee's existing hospital session.
+		}
+		else
+		{
+			@:You can update employee details only for employees assigned to @Model.CurrentHospitalName.
+		}
+	</p>
+	<form method="post">
+		<input type="hidden" asp-for="Username" />
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		@if (Model.CanAssignHospital)
+		{
+			<label asp-for="Input.HospitalId">Assigned hospital</label>
+			<select asp-for="Input.HospitalId" required>
+				<option value="">Select a hospital</option>
+				@foreach (HospitalSummary hospital in Model.Hospitals)
+				{
+					<option value="@hospital.HospitalId">@hospital.Name</option>
+				}
+			</select>
+			<span asp-validation-for="Input.HospitalId" class="validation"></span>
+		}
+		else
+		{
+			<p><strong>Assigned hospital:</strong> @Model.CurrentHospitalName</p>
+		}
+		<partial name="_EmployeeProfileFields" for="Input" />
+		<div class="form-actions">
+			<button class="button" type="submit">Save employee</button>
+			<a class="button secondary" asp-page="/Admin/Employees">Cancel</a>
+		</div>
+	</form>
+</section>

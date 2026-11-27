@@ -1,0 +1,137 @@
+@page
+@model MK_Hospital.Pages.PatientPortal.RecordsModel
+@{
+    ViewData["Title"] = "My patient records";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">PATIENT PORTAL</p>
+		<h1>My records</h1>
+		<p class="muted">Read-only visits and test results for your shared patient ID, from every participating hospital.</p>
+	</div>
+</div>
+
+@if (Model.Records.Count == 0)
+{
+	<div class="card empty-state">
+		<h2>No linked records</h2>
+		<p>Contact the hospital where your record is held and ask staff to verify your identity and issue a portal registration code.</p>
+	</div>
+}
+else
+{
+	@foreach (PatientPortalRecord record in Model.Records)
+	{
+		<section class="form-card">
+			<p class="eyebrow">PATIENT RECORD AT @record.Summary.HospitalName</p>
+			<h2>@record.Details.FirstName @record.Details.LastName</h2>
+			<dl class="detail-grid">
+				<div><dt>Record ID</dt><dd>@record.Summary.PatientId</dd></div>
+				<div><dt>Shared patient ID</dt><dd>@record.Details.SharedPatientId</dd></div>
+				<div><dt>Gender</dt><dd>@record.Details.Gender</dd></div>
+				<div><dt>Date of birth</dt><dd>@record.Details.DateOfBirth.ToString("yyyy-MM-dd")</dd></div>
+				<div><dt>Phone</dt><dd>@PhoneNumberSupport.FormatInternational(record.Details.Phone)</dd></div>
+				<div><dt>Address</dt><dd class="preserve-lines">@record.Details.Address</dd></div>
+				<div><dt>Admission date</dt><dd>@record.Details.AdmissionDate.ToString("yyyy-MM-dd")</dd></div>
+				<div><dt>Discharge date</dt><dd>@(record.Details.DischargeDate?.ToString("yyyy-MM-dd") ?? "Not discharged")</dd></div>
+				<div><dt>Emergency contact</dt><dd>@(string.IsNullOrWhiteSpace(record.Details.EmergencyContactName) ? "Not provided" : record.Details.EmergencyContactName)</dd></div>
+				<div><dt>Emergency contact phone</dt><dd>@(string.IsNullOrWhiteSpace(record.Details.EmergencyContactPhone) ? "Not provided" : PhoneNumberSupport.FormatInternational(record.Details.EmergencyContactPhone))</dd></div>
+			</dl>
+
+			<h3>Visits</h3>
+			@if (record.Visits.Count == 0)
+			{
+				<p class="muted">No visits recorded.</p>
+			}
+			else
+			{
+				@foreach (PatientPortalVisit visit in record.Visits)
+				{
+					<article class="card">
+						<h4>Visit on @visit.Checkup.CheckupDate.ToString("yyyy-MM-dd") — @visit.Checkup.HospitalName</h4>
+						<p class="muted">Recorded by @visit.CreatedByName on @visit.Checkup.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						@if (visit.Checkup.UpdatedAtUtc > visit.Checkup.CreatedAtUtc)
+						{
+							<p class="muted">Last updated by @visit.UpdatedByName on @visit.Checkup.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						}
+						@if (visit.Checkup.FollowUpDate.HasValue)
+						{
+							<p><strong>Follow-up:</strong> @visit.Checkup.FollowUpDate.Value.ToString("yyyy-MM-dd")</p>
+						}
+						<partial name="~/Pages/Patients/_PatientMedicalHistory.cshtml" model="visit.Checkup.History" />
+						<h4>Test results for this visit</h4>
+						@{
+							PatientPortalTest[] visitTests = record.Tests
+								.Where(test => test.Result.CheckupId == visit.Checkup.CheckupId)
+								.ToArray();
+						}
+						@if (visitTests.Length == 0)
+						{
+							<p class="muted">No tests recorded for this visit.</p>
+						}
+						else
+						{
+							<ul class="visit-test-list">
+							@foreach (PatientPortalTest test in visitTests)
+							{
+								<li>
+									<strong>@test.Result.TestName</strong> (@test.Result.TestDate.ToString("yyyy-MM-dd")):
+									@test.Result.Result @test.Result.Unit
+									<p class="muted">Recorded at @test.HospitalName by @test.CreatedByName</p>
+									@if (test.Result.UpdatedAtUtc > test.Result.CreatedAtUtc)
+									{
+										<p class="muted">Last updated by @test.UpdatedByName on @test.Result.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+									}
+									@if (!string.IsNullOrWhiteSpace(test.Result.ReferenceRange))
+									{
+										<p><strong>Reference range:</strong> @test.Result.ReferenceRange</p>
+									}
+									@if (!string.IsNullOrWhiteSpace(test.Result.Notes))
+									{
+										<p class="record-notes">@test.Result.Notes</p>
+									}
+								</li>
+							}
+							</ul>
+						}
+					</article>
+				}
+			}
+
+			<h3>Test results not linked to a visit</h3>
+			@{
+				PatientPortalTest[] unlinkedTests = record.Tests
+					.Where(test => test.Result.CheckupId is null)
+					.ToArray();
+			}
+			@if (unlinkedTests.Length == 0)
+			{
+				<p class="muted">No unlinked test results.</p>
+			}
+			else
+			{
+				@foreach (PatientPortalTest test in unlinkedTests)
+				{
+					<article class="card">
+						<h4>@test.Result.TestName — @test.HospitalName</h4>
+						<p><strong>Date:</strong> @test.Result.TestDate.ToString("yyyy-MM-dd")</p>
+						<p><strong>Result:</strong> @test.Result.Result @test.Result.Unit</p>
+						<p class="muted">Recorded by @test.CreatedByName on @test.Result.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						@if (test.Result.UpdatedAtUtc > test.Result.CreatedAtUtc)
+						{
+							<p class="muted">Last updated by @test.UpdatedByName on @test.Result.UpdatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</p>
+						}
+						@if (!string.IsNullOrWhiteSpace(test.Result.ReferenceRange))
+						{
+							<p><strong>Reference range:</strong> @test.Result.ReferenceRange</p>
+						}
+						@if (!string.IsNullOrWhiteSpace(test.Result.Notes))
+						{
+							<p class="record-notes">@test.Result.Notes</p>
+						}
+					</article>
+				}
+			}
+		</section>
+	}
+}

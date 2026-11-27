@@ -1,0 +1,125 @@
+@page
+@model EmployeesModel
+@{
+    ViewData["Title"] = "Employee accounts";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Employee accounts</h1>
+		@if (Model.IsGlobalAdministrator)
+		{
+			<p class="muted">Create employees for the active hospital, or edit their assigned hospital. Employees remain scoped to one hospital and must set a personal password on first sign-in.</p>
+		}
+		else
+		{
+			<p class="muted">Manage employees assigned to @Model.CurrentHospitalName. Their hospital assignment cannot be changed here. Employees must set a personal password on first sign-in.</p>
+		}
+	</div>
+</div>
+@if (!string.IsNullOrEmpty(Model.TemporaryPassword))
+{
+	<section class="notice" role="status">
+		<h2>@(Model.PasswordAction == "reset" ? "Employee password reset" : "Employee account created")</h2>
+		@if (Model.PasswordAction == "reset")
+		{
+			<p>Email delivery failed (@Model.PasswordDeliveryError). Verify the employee's identity, then share this one-time password (OTP) with
+				<strong>@Model.PasswordUsername</strong> by phone at
+				<strong>@(string.IsNullOrWhiteSpace(Model.PasswordDeliveryPhone) ? "the phone number on file is unavailable" : PhoneNumberSupport.FormatInternational(Model.PasswordDeliveryPhone))</strong>,
+				or use another trusted recovery channel.
+				<a asp-page="/Admin/OutlookEmail">Check Outlook email settings</a>.</p>
+		}
+		else
+		{
+			<p>
+				Share this one-time password (OTP) securely with <strong>@Model.PasswordUsername</strong>.
+				They will use it to sign in, complete their profile, and choose a personal password before accessing the app.
+				This OTP is displayed only once.
+			</p>
+		}
+		<label for="temporary-password">One-time password (OTP)</label>
+		<div class="otp-copy-row">
+			<input id="temporary-password" type="text" value="@Model.TemporaryPassword" readonly
+				onfocus="this.select()" aria-describedby="otp-copy-status" />
+			<button id="copy-otp" type="button">Copy OTP</button>
+		</div>
+		<p id="otp-copy-status" aria-live="polite">Select the field to copy manually if the copy button is unavailable.</p>
+	</section>
+	<script>
+		document.getElementById("copy-otp").addEventListener("click", async function () {
+			const otpInput = document.getElementById("temporary-password");
+			const copyStatus = document.getElementById("otp-copy-status");
+			otpInput.select();
+			try {
+				await navigator.clipboard.writeText(otpInput.value);
+				copyStatus.textContent = "OTP copied to clipboard.";
+			} catch {
+				copyStatus.textContent = "Automatic copy is unavailable. The OTP is selected; copy it manually.";
+			}
+		});
+	</script>
+}
+<section class="card">
+	<h2>Create employee account</h2>
+	<form method="post">
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		<label asp-for="Input.Username">Username</label>
+		<input asp-for="Input.Username" autocomplete="off" required />
+		<span asp-validation-for="Input.Username" class="validation"></span>
+		<button class="button" type="submit">Create account</button>
+	</form>
+</section>
+<section class="card">
+	<h2>Employee accounts</h2>
+	@if (Model.Employees.Count == 0)
+	{
+		<p class="muted">No employee accounts have been created.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th>Username</th>
+						<th>Name</th>
+						<th>Clinical position</th>
+						<th>Hospital</th>
+						<th>Date of birth</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th>Emergency contact</th>
+						<th>Setup status</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+				@foreach (EmployeeAccountSummary employee in Model.Employees)
+				{
+					<tr>
+						<td>@employee.Username</td>
+						<td>@employee.Profile.FirstName @employee.Profile.LastName</td>
+						<td>@(string.IsNullOrWhiteSpace(employee.Profile.ClinicalRole) ? "Not selected" : employee.Profile.ClinicalRole)</td>
+						<td>@employee.HospitalName</td>
+						<td>@(employee.Profile.DateOfBirth?.ToString("yyyy-MM-dd") ?? "Not provided")</td>
+						<td>@employee.Profile.Email</td>
+						<td>@PhoneNumberSupport.FormatInternational(employee.Profile.Phone)</td>
+						<td>@employee.Profile.EmergencyContactName (@employee.Profile.EmergencyContactRelationship), @PhoneNumberSupport.FormatInternational(employee.Profile.EmergencyContactPhone)</td>
+						<td>
+							@(employee.MustChangePassword
+								? "Password setup required"
+								: employee.ProfileComplete ? "Complete" : "Profile setup required")
+						</td>
+						<td class="actions">
+							<a asp-page="/Admin/EditEmployee" asp-route-username="@employee.Username">Edit</a>
+							<form method="post" asp-page-handler="ResetPassword" asp-route-username="@employee.Username">
+								<button class="button secondary" type="submit">Reset password</button>
+							</form>
+						</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>

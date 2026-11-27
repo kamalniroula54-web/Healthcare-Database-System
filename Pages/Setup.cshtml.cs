@@ -19,6 +19,9 @@ public sealed class SetupModel(IUserAccountService accounts) : PageModel
 	[BindProperty, Required, Compare(nameof(Password))]
 	public string ConfirmPassword { get; set; } = string.Empty;
 
+	[BindProperty]
+	public EmployeeProfileForm Profile { get; set; } = new();
+
 	public string? ErrorMessage { get; private set; }
 
 	public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken) =>
@@ -28,10 +31,17 @@ public sealed class SetupModel(IUserAccountService accounts) : PageModel
 
 	public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
 	{
+		if (Profile.DateOfBirth.HasValue && Profile.DateOfBirth.Value.Date > DateTime.Today)
+			ModelState.AddModelError("Profile.DateOfBirth", "Date of birth cannot be in the future.");
+
 		if (!ModelState.IsValid)
 			return Page();
 
-		if (!await accounts.CreateInitialAdminAsync(Username.Trim(), Password, cancellationToken))
+		if (!await accounts.CreateInitialAdminAsync(
+			Username.Trim(),
+			Password,
+			Profile.ToProfile(),
+			cancellationToken))
 		{
 			ErrorMessage = "An administrator account already exists on this device. Please sign in.";
 			return Page();
@@ -39,7 +49,11 @@ public sealed class SetupModel(IUserAccountService accounts) : PageModel
 
 		ClaimsPrincipal principal = new(
 			new ClaimsIdentity(
-				[new Claim(ClaimTypes.Name, Username.Trim())],
+				[
+					new Claim(ClaimTypes.Name, Username.Trim()),
+					new Claim(ClaimTypes.Role, UserRoles.Admin),
+					new Claim(HospitalClaims.HospitalId, "1")
+				],
 				CookieAuthenticationDefaults.AuthenticationScheme));
 		await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 		return RedirectToPage("/Index");

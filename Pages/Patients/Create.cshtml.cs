@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MK_Hospital.Data;
 
 namespace MK_Hospital.Pages.Patients;
 
+[Authorize(Roles = UserRoles.Staff)]
 public sealed class CreateModel(IPatientRepository patients) : PageModel
 {
 	[BindProperty]

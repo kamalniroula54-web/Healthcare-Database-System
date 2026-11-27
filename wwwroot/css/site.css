@@ -27,15 +27,141 @@ a:hover {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	gap: 1rem;
 	padding: 1rem max(1.5rem, calc((100% - 1120px) / 2));
 	background: #fff;
 	border-bottom: 1px solid #e2ebf0;
 }
 
+.topbar-nav {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: .85rem;
+}
+
+.topbar-nav form {
+	margin: 0;
+}
+
+.admin-menu,
+.hospital-switcher {
+	position: relative;
+}
+
+.admin-menu summary,
+.hospital-switcher summary {
+	padding: .2rem .1rem;
+	color: #087e9d;
+	cursor: pointer;
+	list-style: none;
+}
+
+.admin-menu summary::-webkit-details-marker,
+.hospital-switcher summary::-webkit-details-marker {
+	display: none;
+}
+
+.admin-menu summary::after,
+.hospital-switcher summary::after {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	margin-left: .4rem;
+	border-top: .35rem solid currentColor;
+	border-right: .3rem solid transparent;
+	border-left: .3rem solid transparent;
+	content: "";
+	vertical-align: middle;
+}
+
+.admin-submenu {
+	position: absolute;
+	top: calc(100% + .5rem);
+	right: 0;
+	z-index: 10;
+	display: grid;
+	min-width: 13rem;
+	padding: .35rem;
+	border: 1px solid #e2ebf0;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 8px 24px rgb(26 63 88 / 12%);
+}
+
+.admin-submenu a {
+	padding: .55rem .65rem;
+	border-radius: 6px;
+}
+
+.admin-submenu a:hover {
+	background: #f3f7fa;
+	text-decoration: none;
+}
+
+.hospital-submenu {
+	min-width: 16rem;
+	gap: .4rem;
+	padding: .75rem;
+}
+
+.hospital-submenu form {
+	display: grid;
+	gap: .5rem;
+}
+
+.hospital-submenu form label {
+	margin: 0;
+}
+
+.hospital-submenu form button {
+	width: 100%;
+}
+
 .brand {
+	display: inline-flex;
+	align-items: center;
+	gap: .6rem;
 	color: #123b59;
 	font-size: 1.15rem;
 	font-weight: 700;
+}
+
+.brand-logo {
+	display: block;
+	width: auto;
+	max-width: 3rem;
+	height: 2.4rem;
+	object-fit: contain;
+}
+
+.hospital-logo-preview {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-top: 1rem;
+}
+
+.hospital-logo-preview img {
+	display: block;
+	max-width: min(18rem, 100%);
+	max-height: 10rem;
+	object-fit: contain;
+	border: 1px solid #e2ebf0;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.checkbox-label {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+	margin: .25rem 0;
+}
+
+.checkbox-label input {
+	width: auto;
 }
 
 .container {
@@ -54,6 +180,19 @@ a:hover {
 	color: #64798a;
 	font-size: .85rem;
 	text-align: center;
+}
+
+.hospital-footer-info {
+	display: flex;
+	flex-basis: 100%;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: .35rem 1rem;
+	color: #526a7c;
+}
+
+.hospital-footer-info .preserve-lines {
+	white-space: pre-line;
 }
 
 .hero,
@@ -185,6 +324,20 @@ select:focus {
 	border-color: #087e9d;
 }
 
+.phone-input {
+	display: flex;
+	gap: .5rem;
+}
+
+.phone-input select {
+	width: min(45%, 15rem);
+	flex: 0 0 auto;
+}
+
+.phone-input input {
+	min-width: 0;
+}
+
 .auth-card form .button {
 	margin-top: 1.3rem;
 }
@@ -261,6 +414,82 @@ tbody tr:last-child td {
 	text-align: center;
 }
 
+.record-notes {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.patient-demographics h2 {
+	margin-top: 0;
+}
+
+.detail-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+	gap: .85rem 1.25rem;
+	margin: 0;
+}
+
+.detail-grid dt {
+	font-weight: 650;
+}
+
+.detail-grid dd {
+	margin: .25rem 0 0;
+	overflow-wrap: anywhere;
+}
+
+.preserve-lines {
+	white-space: pre-line;
+}
+
+.clinical-form {
+	max-width: 900px;
+}
+
+.history-section,
+.test-result-row {
+	min-width: 0;
+	margin: 1.5rem 0;
+	padding: 1rem;
+	border: 1px solid #dce7ed;
+	border-radius: 10px;
+}
+
+.history-section legend,
+.test-result-row legend {
+	padding: 0 .4rem;
+	color: #123b59;
+	font-weight: 700;
+}
+
+.medical-history h4 {
+	margin: 1.5rem 0 .5rem;
+	color: #294b63;
+}
+
+.medical-history dl {
+	display: grid;
+	grid-template-columns: minmax(12rem, 1fr) 2fr;
+	gap: .4rem 1rem;
+}
+
+.medical-history dt {
+	font-weight: 650;
+}
+
+.medical-history dd {
+	margin: 0;
+}
+
+.visit-test-list li {
+	margin-bottom: .8rem;
+}
+
+.visit-test-list p {
+	margin: .25rem 0;
+}
+
 .form-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -286,6 +515,23 @@ tbody tr:last-child td {
 	color: #17684d;
 }
 
+.otp-copy-row {
+	display: flex;
+	align-items: stretch;
+	gap: .6rem;
+}
+
+.otp-copy-row input {
+	min-width: 0;
+	flex: 1;
+	font-family: Consolas, monospace;
+}
+
+#otp-copy-status {
+	margin-bottom: 0;
+	font-size: .9rem;
+}
+
 .alert {
 	background: #fff1f1;
 	color: #9c202a;
@@ -298,9 +544,17 @@ tbody tr:last-child td {
 	font-size: .85rem;
 }
 
+.phone-format-status:empty {
+	display: none;
+}
+
 @media (max-width: 640px) {
 	.page-heading {
 		align-items: start;
+		flex-direction: column;
+	}
+
+	.otp-copy-row {
 		flex-direction: column;
 	}
 
@@ -310,5 +564,14 @@ tbody tr:last-child td {
 
 	.span-two {
 		grid-column: auto;
+	}
+
+	.medical-history dl {
+		grid-template-columns: 1fr;
+		gap: .2rem;
+	}
+
+	.medical-history dd {
+		margin-bottom: .6rem;
 	}
 }

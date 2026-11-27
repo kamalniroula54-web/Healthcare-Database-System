@@ -1,0 +1,30 @@
+@page
+@model MK_Hospital.Pages.PatientPortal.RegisterModel
+@{
+    ViewData["Title"] = "Create patient portal account";
+}
+<section class="auth-card">
+	<p class="eyebrow">PATIENT PORTAL</p>
+	<h1>Create your account</h1>
+	<p class="muted">Enter the single-use signup code provided by your hospital. After signup, your portal includes records from every hospital that uses your shared patient ID.</p>
+	@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+	{
+		<div class="alert" role="alert">@Model.ErrorMessage</div>
+	}
+	<form method="post">
+		<label asp-for="Input.RegistrationCode">Registration code</label>
+		<input asp-for="Input.RegistrationCode" autocomplete="off" spellcheck="false" required />
+		<span asp-validation-for="Input.RegistrationCode" class="validation"></span>
+		<label asp-for="Input.Username">Username</label>
+		<input asp-for="Input.Username" autocomplete="username" required />
+		<span asp-validation-for="Input.Username" class="validation"></span>
+		<label asp-for="Input.Password">Password (at least 12 characters)</label>
+		<input asp-for="Input.Password" type="password" autocomplete="new-password" required />
+		<span asp-validation-for="Input.Password" class="validation"></span>
+		<label asp-for="Input.ConfirmPassword">Confirm password</label>
+		<input asp-for="Input.ConfirmPassword" type="password" autocomplete="new-password" required />
+		<span asp-validation-for="Input.ConfirmPassword" class="validation"></span>
+		<button class="button full-width" type="submit">Create account</button>
+	</form>
+	<p class="muted"><a asp-page="/PatientPortal/Login">Already have an account? Sign in</a></p>
+</section>

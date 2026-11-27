@@ -4,9 +4,9 @@
     ViewData["Title"] = "Sign in";
 }
 <section class="auth-card">
-	<p class="eyebrow">MK HOSPITAL</p>
+	<p class="eyebrow">EVEREST HEALTH</p>
 	<h1>Sign in</h1>
-	<p class="muted">Use the administrator account configured by the site owner.</p>
+	<p class="muted">Sign in with the account details provided to you.</p>
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage))
 	{
 		<div class="alert" role="alert">@Model.ErrorMessage</div>
@@ -19,4 +19,6 @@
 		<input asp-for="Password" type="password" autocomplete="current-password" required />
 		<button class="button full-width" type="submit">Sign in</button>
 	</form>
+	<p class="muted"><a asp-page="/ForgotPassword">Forgot your password?</a></p>
+	<p class="muted"><a asp-page="/PatientPortal/Login">Patient portal sign in</a></p>
 </section>

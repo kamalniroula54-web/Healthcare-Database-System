@@ -6,7 +6,7 @@
 <section class="auth-card">
 	<p class="eyebrow">FIRST RUN</p>
 	<h1>Create administrator</h1>
-	<p class="muted">Set up the local administrator account for this device.</p>
+	<p class="muted">Set up the local administrator account and profile for this device.</p>
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage))
 	{
 		<div class="alert" role="alert">@Model.ErrorMessage</div>
@@ -21,6 +21,8 @@
 		<label asp-for="ConfirmPassword">Confirm password</label>
 		<input asp-for="ConfirmPassword" type="password" autocomplete="new-password" required />
 		<span asp-validation-for="ConfirmPassword" class="validation"></span>
+		<h2>Administrator profile</h2>
+		<partial name="_EmployeeProfileFields" for="Profile" />
 		<button class="button full-width" type="submit">Create account</button>
 	</form>
 </section>

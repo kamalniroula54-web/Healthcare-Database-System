@@ -1,0 +1,93 @@
+@page
+@model AccessRequestsModel
+@{
+    ViewData["Title"] = "Patient access";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">CROSS-HOSPITAL RECORDS</p>
+		<h1>Patient access</h1>
+		<p class="muted">Request access to a patient at another hospital. If approved, all employees at your hospital can view the patient's visits across hospitals, while each hospital can change only its own visit entries.</p>
+	</div>
+</div>
+<section class="card">
+	<h2>Request access</h2>
+	<form method="post" asp-page-handler="Request">
+		<div asp-validation-summary="All" class="validation"></div>
+		<label asp-for="Input.TargetHospitalId">Hospital holding the record</label>
+		<select asp-for="Input.TargetHospitalId" required>
+			<option value="">Select a hospital</option>
+			@foreach (HospitalSummary hospital in Model.Hospitals)
+			{
+				<option value="@hospital.HospitalId">@hospital.Name</option>
+			}
+		</select>
+		<span asp-validation-for="Input.TargetHospitalId" class="validation"></span>
+		<label asp-for="Input.PatientReference">Patient name or record number</label>
+		<input asp-for="Input.PatientReference" maxlength="200" required />
+		<span asp-validation-for="Input.PatientReference" class="validation"></span>
+		<label asp-for="Input.Reason">Reason access is needed</label>
+		<textarea asp-for="Input.Reason" rows="3" maxlength="1000" required></textarea>
+		<span asp-validation-for="Input.Reason" class="validation"></span>
+		<button class="button" type="submit" disabled="@(Model.Hospitals.Count == 0)">Send request</button>
+		@if (Model.Hospitals.Count == 0)
+		{
+			<p class="muted">No other hospitals are available to request.</p>
+		}
+	</form>
+</section>
+<section class="card">
+	<h2>Your requests</h2>
+	@if (Model.Requests.Count == 0)
+	{
+		<p class="muted">You have not requested cross-hospital patient access.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Requested hospital</th><th>Patient reference</th><th>Reason</th><th>Requested</th><th>Status</th><th>Granted patient</th></tr></thead>
+				<tbody>
+				@foreach (PatientAccessRequestSummary request in Model.Requests)
+				{
+					<tr>
+						<td>@request.TargetHospitalName</td>
+						<td>@request.PatientReference</td>
+						<td>@request.Reason</td>
+						<td>@request.RequestedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+						<td>@request.Status</td>
+						<td>@(request.GrantedPatientName ?? "—")</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>
+<section class="card">
+	<h2>Active patient grants</h2>
+	@if (!Model.Grants.Any(grant => grant.RevokedAtUtc is null))
+	{
+		<p class="muted">No cross-hospital patient records are currently available to your hospital.</p>
+	}
+	else
+	{
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Requested by</th><th>Source hospital</th><th>Patient</th><th>Granted by</th><th>Access</th></tr></thead>
+				<tbody>
+				@foreach (PatientAccessGrantSummary grant in Model.Grants.Where(grant => grant.RevokedAtUtc is null))
+				{
+					<tr>
+						<td>@grant.EmployeeName (@grant.EmployeeUsername)</td>
+						<td>@grant.HospitalName</td>
+						<td><a asp-page="/Patients/Records" asp-route-patientId="@grant.PatientId">@grant.PatientName</a></td>
+						<td>@grant.GrantedBy</td>
+						<td>Hospital-wide view; edit visits recorded by your hospital</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	}
+</section>

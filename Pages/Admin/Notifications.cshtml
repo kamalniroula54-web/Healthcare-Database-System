@@ -1,0 +1,53 @@
+@page
+@model NotificationsModel
+@{
+    ViewData["Title"] = "Date change notifications";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Date change notifications</h1>
+		<p class="muted">Employee-submitted admission and discharge date changes.</p>
+	</div>
+</div>
+@if (Model.Changes.Count == 0)
+{
+	<div class="card empty-state">
+		<h2>You're all caught up</h2>
+		<p>No unacknowledged employee date changes.</p>
+	</div>
+}
+else
+{
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr>
+					<th>Patient ID</th>
+					<th>Changed by</th>
+					<th>Admission date</th>
+					<th>Discharge date</th>
+					<th>Submitted (UTC)</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+			@foreach (PatientDateChange change in Model.Changes)
+			{
+				<tr>
+					<td>@change.PatientId</td>
+					<td>@change.ChangedBy</td>
+					<td>@change.PreviousAdmissionDate.ToString("yyyy-MM-dd") to @change.NewAdmissionDate.ToString("yyyy-MM-dd")</td>
+					<td>@(change.PreviousDischargeDate?.ToString("yyyy-MM-dd") ?? "None") to @(change.NewDischargeDate?.ToString("yyyy-MM-dd") ?? "None")</td>
+					<td>@change.ChangedAtUtc.ToString("yyyy-MM-dd HH:mm")</td>
+					<td>
+						<form method="post" asp-page-handler="Acknowledge" asp-route-id="@change.Id">
+							<button class="button secondary" type="submit">Acknowledge</button>
+						</form>
+					</td>
+				</tr>
+			}
+			</tbody>
+		</table>
+	</div>
+}

@@ -1,0 +1,42 @@
+@page
+@model HospitalsModel
+@{
+    ViewData["Title"] = "Hospitals";
+}
+<div class="page-heading">
+	<div>
+		<p class="eyebrow">ADMINISTRATION</p>
+		<h1>Hospitals</h1>
+		<p class="muted">Add hospitals and use the Hospitals menu in the top navigation to switch the active hospital.</p>
+	</div>
+</div>
+<section class="card">
+	<h2>Add a hospital</h2>
+	<form method="post" asp-page-handler="Create">
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		<label asp-for="Input.Name">Hospital name</label>
+		<input asp-for="Input.Name" maxlength="100" required />
+		<span asp-validation-for="Input.Name" class="validation"></span>
+		<button class="button" type="submit">Add hospital</button>
+	</form>
+</section>
+<section class="card">
+	<h2>Available hospitals</h2>
+	<div class="table-wrap">
+		<table>
+			<thead>
+				<tr><th>Name</th><th>Status</th><th>Profile</th></tr>
+			</thead>
+			<tbody>
+			@foreach (HospitalSummary hospital in Model.Hospitals)
+			{
+				<tr>
+					<td>@hospital.Name</td>
+					<td>@(hospital.HospitalId == Model.CurrentHospitalId ? "Active" : "Available")</td>
+					<td><a asp-page="/Admin/EditHospital" asp-route-id="@hospital.HospitalId">Edit details &amp; logo</a></td>
+				</tr>
+			}
+			</tbody>
+		</table>
+	</div>
+</section>

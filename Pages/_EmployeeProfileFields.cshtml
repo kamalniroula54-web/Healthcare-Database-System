@@ -1,0 +1,67 @@
+@model EmployeeProfileForm
+<div class="form-grid">
+	<div>
+		<label asp-for="FirstName">First name</label>
+		<input asp-for="FirstName" autocomplete="given-name" required />
+		<span asp-validation-for="FirstName" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="LastName">Last name</label>
+		<input asp-for="LastName" autocomplete="family-name" required />
+		<span asp-validation-for="LastName" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="DateOfBirth">Date of birth</label>
+		<input asp-for="DateOfBirth" type="date" required />
+		<span asp-validation-for="DateOfBirth" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="Email">Email address</label>
+		<input asp-for="Email" type="email" autocomplete="email" required />
+		<span asp-validation-for="Email" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="Phone">Phone number</label>
+		<div class="phone-input">
+			<select asp-for="PhoneRegion" asp-items="PhoneNumberSupport.CountryOptions" aria-label="Phone country code"></select>
+			<input asp-for="Phone" type="tel" autocomplete="tel-national" data-phone-format required />
+		</div>
+		<span class="validation phone-format-status" aria-live="polite"></span>
+		<span asp-validation-for="Phone" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="EmergencyContactName">Emergency contact name</label>
+		<input asp-for="EmergencyContactName" required />
+		<span asp-validation-for="EmergencyContactName" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="EmergencyContactPhone">Emergency contact phone</label>
+		<div class="phone-input">
+			<select asp-for="EmergencyContactPhoneRegion" asp-items="PhoneNumberSupport.CountryOptions" aria-label="Emergency contact country code"></select>
+			<input asp-for="EmergencyContactPhone" type="tel" autocomplete="tel-national" data-phone-format required />
+		</div>
+		<span class="validation phone-format-status" aria-live="polite"></span>
+		<span asp-validation-for="EmergencyContactPhone" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="EmergencyContactRelationship">Emergency contact relationship</label>
+		<input asp-for="EmergencyContactRelationship" required />
+		<span asp-validation-for="EmergencyContactRelationship" class="validation"></span>
+	</div>
+	<div>
+		<label asp-for="ClinicalRole">Clinical position (required for employees)</label>
+		<select asp-for="ClinicalRole">
+			<option value="">Select a clinical position</option>
+			@foreach (ClinicalRoleGroup group in ClinicalRoleCatalog.Groups)
+			{
+				<optgroup label="@group.Name">
+					@foreach (string role in group.Roles)
+					{
+						<option value="@role">@role</option>
+					}
+				</optgroup>
+			}
+		</select>
+		<span asp-validation-for="ClinicalRole" class="validation"></span>
+	</div>
+</div>

@@ -1,28 +1,160 @@
+@using System.Security.Claims
+@inject IHospitalService HospitalService
+@{
+	int activeHospitalId = int.TryParse(User.FindFirstValue(HospitalClaims.HospitalId), out int parsedHospitalId)
+		? parsedHospitalId
+		: 0;
+	HospitalDetails? activeHospital = User.Identity?.IsAuthenticated == true && activeHospitalId > 0
+		? await HospitalService.GetDetailsAsync(activeHospitalId, Context.RequestAborted)
+		: null;
+	IReadOnlyList<HospitalSummary> navigationHospitals = User.IsInRole(UserRoles.Admin)
+		? await HospitalService.GetAllAsync(Context.RequestAborted)
+		: [];
+	string activeHospitalName = activeHospital?.Name ?? "Select hospital";
+	string pageTitle = ViewData["Title"] as string ?? "Everest Health";
+	string browserTitle = activeHospital is null
+		? $"{pageTitle} - Everest Health"
+		: $"{pageTitle} - {activeHospital.Name} - Everest Health";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>@ViewData["Title"] - MK Hospital</title>
+	<title>@browserTitle</title>
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
 	<header class="topbar">
-		<a class="brand" asp-page="/Index">MK Hospital</a>
+		<a class="brand" asp-page="/Index">
+			@if (activeHospital?.HasLogo == true)
+			{
+				<img class="brand-logo" src="@Url.Page("/HospitalLogo", new { id = activeHospital.HospitalId })" alt="@activeHospital.Name logo" />
+			}
+			<span>Everest Health</span>
+		</a>
 		@if (User.Identity?.IsAuthenticated == true)
 		{
-			<form method="post" asp-page="/Logout">
-				<button class="link-button" type="submit">Sign out</button>
-			</form>
+			<nav class="topbar-nav">
+				@if (User.IsInRole(UserRoles.Patient))
+				{
+					<a asp-page="/PatientPortal/Records">My records</a>
+					<form method="post" asp-page="/PatientPortal/Logout">
+						<button class="link-button" type="submit">Sign out</button>
+					</form>
+				}
+				else
+				{
+					<a asp-page="/Patients/Index">Patients</a>
+					@if (User.IsInRole(UserRoles.Employee))
+					{
+						<a asp-page="/Patients/AccessRequests">Patient access</a>
+					}
+					<a asp-page="/Profile">My profile</a>
+					@if (User.IsInRole(UserRoles.Admin))
+					{
+						<details class="hospital-switcher">
+							<summary>@activeHospitalName</summary>
+							<div class="admin-submenu hospital-submenu">
+								<form method="post" asp-page="/Admin/Hospitals" asp-page-handler="Switch">
+									<label for="hospital-switch">Switch hospital</label>
+									<select id="hospital-switch" name="hospitalId">
+										@foreach (HospitalSummary hospital in navigationHospitals)
+										{
+											if (hospital.HospitalId == activeHospitalId)
+											{
+												<option value="@hospital.HospitalId" selected>@hospital.Name</option>
+											}
+											else
+											{
+												<option value="@hospital.HospitalId">@hospital.Name</option>
+											}
+										}
+									</select>
+									<button type="submit">Switch</button>
+								</form>
+								<a asp-page="/Admin/Hospitals">Add/manage hospitals</a>
+							</div>
+						</details>
+					}
+					@if (User.IsInRole(UserRoles.Admin))
+					{
+						<details class="admin-menu">
+							<summary>Admin</summary>
+							<div class="admin-submenu">
+								<a asp-page="/Admin/Employees">Employees</a>
+								<a asp-page="/Admin/PatientAccessRequests">Patient access requests</a>
+								<a asp-page="/Admin/Administrators">Administrators</a>
+								<a asp-page="/Admin/HospitalAdmins">Hospital administrators</a>
+								<a asp-page="/Admin/PasswordResetRequests">Password resets</a>
+								<a asp-page="/Admin/OutlookEmail">Outlook email</a>
+								<a asp-page="/Admin/Notifications">Date notifications</a>
+							</div>
+						</details>
+					}
+					else if (User.IsInRole(UserRoles.HospitalAdmin))
+					{
+						<details class="admin-menu">
+							<summary>Hospital admin</summary>
+							<div class="admin-submenu">
+								<a asp-page="/Admin/Employees">Employees</a>
+								@if (User.HasClaim(UserAccountClaims.CanApprovePatientAccess, "true"))
+								{
+									<a asp-page="/Admin/PatientAccessRequests">Patient access requests</a>
+								}
+								<a asp-page="/Admin/Notifications">Date notifications</a>
+							</div>
+						</details>
+					}
+					@if (User.HasClaim(UserAccountClaims.MustChangePassword, "true"))
+					{
+						<a asp-page="/ChangePassword">Set password</a>
+					}
+					<form method="post" asp-page="/Logout">
+						<button class="link-button" type="submit">Sign out</button>
+					</form>
+				}
+			</nav>
 		}
 	</header>
 	<main class="container">
+		@if (TempData["Message"] is string message)
+		{
+			<div class="notice" role="status">@message</div>
+		}
 		@RenderBody()
 	</main>
 	<footer class="site-footer">
+		@if (activeHospital is not null &&
+			(!string.IsNullOrWhiteSpace(activeHospital.LicenseNumber) ||
+				!string.IsNullOrWhiteSpace(activeHospital.Address) ||
+				!string.IsNullOrWhiteSpace(activeHospital.ContactPhone) ||
+				!string.IsNullOrWhiteSpace(activeHospital.ContactEmail)))
+		{
+			<div class="hospital-footer-info">
+				<strong>@activeHospital.Name</strong>
+				@if (!string.IsNullOrWhiteSpace(activeHospital.LicenseNumber))
+				{
+					<span>License: @activeHospital.LicenseNumber</span>
+				}
+				@if (!string.IsNullOrWhiteSpace(activeHospital.Address))
+				{
+					<span class="preserve-lines">@activeHospital.Address</span>
+				}
+				@if (!string.IsNullOrWhiteSpace(activeHospital.ContactPhone))
+				{
+					<span>Phone: @activeHospital.ContactPhone</span>
+				}
+				@if (!string.IsNullOrWhiteSpace(activeHospital.ContactEmail))
+				{
+					<span>Email: <a href="mailto:@activeHospital.ContactEmail">@activeHospital.ContactEmail</a></span>
+				}
+			</div>
+		}
 		<span>© @DateTime.UtcNow.Year</span>
 		<a href="https://github.com/kamalniroula54-web" target="_blank" rel="noopener noreferrer">Developer: kamalniroula54-web</a>
-		<span>Educational demo only; not for real patient data or clinical use.</span>
+		<span>Demo only; not for real patient data or clinical use.</span>
 	</footer>
+	<script src="~/js/phone-format.js" asp-append-version="true"></script>
 </body>
 </html>

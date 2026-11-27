@@ -17,19 +17,63 @@
 			<input asp-for="Gender" maxlength="10" required />
 			<span asp-validation-for="Gender" class="validation"></span>
 		</div>
+		<div class="span-two">
+			<label asp-for="SharedPatientId">Shared patient ID</label>
+			<input asp-for="SharedPatientId" maxlength="32" autocapitalize="characters" spellcheck="false" required />
+			<span class="muted">Use this same ID for this patient at every hospital. Their portal shows records with matching IDs after one-time signup.</span>
+			<span asp-validation-for="SharedPatientId" class="validation"></span>
+		</div>
 		<div>
 			<label asp-for="DateOfBirth">Date of birth</label>
 			<input asp-for="DateOfBirth" type="date" required />
 		</div>
 		<div class="span-two">
-			<label asp-for="Address">Address</label>
-			<textarea asp-for="Address" rows="3" required></textarea>
-			<span asp-validation-for="Address" class="validation"></span>
+			<label asp-for="Street">Street</label>
+			<input asp-for="Street" maxlength="200" autocomplete="address-line1" required />
+			<span asp-validation-for="Street" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="City">City</label>
+			<input asp-for="City" maxlength="100" autocomplete="address-level2" required />
+			<span asp-validation-for="City" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="State">State / province</label>
+			<input asp-for="State" maxlength="100" autocomplete="address-level1" required />
+			<span asp-validation-for="State" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="Zip">ZIP / postal code</label>
+			<input asp-for="Zip" maxlength="20" autocomplete="postal-code" required />
+			<span asp-validation-for="Zip" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="Country">Country</label>
+			<input asp-for="Country" maxlength="100" autocomplete="country-name" required />
+			<span asp-validation-for="Country" class="validation"></span>
 		</div>
 		<div>
 			<label asp-for="Phone">Phone</label>
-			<input asp-for="Phone" maxlength="10" required />
+			<div class="phone-input">
+				<select asp-for="PhoneRegion" asp-items="PhoneNumberSupport.CountryOptions" aria-label="Phone country code"></select>
+				<input asp-for="Phone" type="tel" autocomplete="tel-national" data-phone-format required />
+			</div>
+			<span class="validation phone-format-status" aria-live="polite"></span>
 			<span asp-validation-for="Phone" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="EmergencyContactName">Emergency contact name (optional)</label>
+			<input asp-for="EmergencyContactName" maxlength="100" />
+			<span asp-validation-for="EmergencyContactName" class="validation"></span>
+		</div>
+		<div>
+			<label asp-for="EmergencyContactPhone">Emergency contact phone (optional)</label>
+			<div class="phone-input">
+				<select asp-for="EmergencyContactPhoneRegion" asp-items="PhoneNumberSupport.CountryOptions" aria-label="Emergency contact country code"></select>
+				<input asp-for="EmergencyContactPhone" type="tel" autocomplete="tel-national" data-phone-format />
+			</div>
+			<span class="validation phone-format-status" aria-live="polite"></span>
+			<span asp-validation-for="EmergencyContactPhone" class="validation"></span>
 		</div>
 		<div>
 			<label asp-for="AdmissionDate">Admission date</label>

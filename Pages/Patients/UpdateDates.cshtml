@@ -1,0 +1,23 @@
+@page "{id:int}"
+@model Patients.UpdateDatesModel
+@{
+    ViewData["Title"] = "Update patient dates";
+}
+<section class="form-card">
+	<p class="eyebrow">RECORD #@Model.PatientId</p>
+	<h1>Update admission/discharge dates</h1>
+	<p class="muted">Only these dates can be changed by employees. The administrator will be notified.</p>
+	<form method="post">
+		<div asp-validation-summary="ModelOnly" class="validation"></div>
+		<label asp-for="Input.AdmissionDate">Admission date</label>
+		<input asp-for="Input.AdmissionDate" type="date" required />
+		<span asp-validation-for="Input.AdmissionDate" class="validation"></span>
+		<label asp-for="Input.DischargeDate">Discharge date (optional)</label>
+		<input asp-for="Input.DischargeDate" type="date" />
+		<span asp-validation-for="Input.DischargeDate" class="validation"></span>
+		<div class="form-actions">
+			<button class="button" type="submit">Save dates</button>
+			<a class="button secondary" asp-page="Index">Cancel</a>
+		</div>
+	</form>
+</section>
